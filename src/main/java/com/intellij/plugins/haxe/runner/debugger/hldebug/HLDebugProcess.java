@@ -128,6 +128,7 @@ public class HLDebugProcess extends XDebugProcess {
     private XBreakpointHandler<?>[] createBreakpointHandlers() {
         return new XBreakpointHandler<?>[]
             {
+                // Handle HashLink-specific breakpoints
                 new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties<?>>>
                     (HLBreakpointType.class) {
                     public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties<?>> breakpoint) {
@@ -135,6 +136,17 @@ public class HLDebugProcess extends XDebugProcess {
                     }
 
                     public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties<?>> breakpoint, boolean temporary) {
+                        HLDebugProcess.this.unregisterBreakpoint(breakpoint);
+                    }
+                },
+                // Also handle regular Haxe breakpoints (so users don't need to use a different breakpoint type)
+                new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>
+                    (com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType.class) {
+                    public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint) {
+                        HLDebugProcess.this.registerBreakpoint(breakpoint);
+                    }
+
+                    public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
                         HLDebugProcess.this.unregisterBreakpoint(breakpoint);
                     }
                 }
