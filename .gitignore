@@ -10,3 +10,6 @@
 local-build-overrides.xml
 intellij-haxe*.jar
 
+ExampleProjects/**/out/
+ExampleProjects/**/Export/
+
