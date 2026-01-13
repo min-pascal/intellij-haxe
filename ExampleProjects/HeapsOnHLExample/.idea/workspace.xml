@@ -8,11 +8,7 @@
       <change beforePath="$PROJECT_DIR$/../../.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/Heaps_1_3_0.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/HeapsOnHLExample.iml" beforeDir="false" afterPath="$PROJECT_DIR$/HeapsOnHLExample.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.hxml" beforeDir="false" afterPath="$PROJECT_DIR$/build.hxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../intellij-haxe.iml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../../src/main/resources/META-INF/plugin.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/main/resources/META-INF/plugin.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../src/main/resources/messages/HaxeBundle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../../src/main/resources/messages/HaxeBundle.properties" afterDir="false" />
@@ -189,16 +185,18 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;HashLink.MyApp2.executor&quot;: &quot;Debug&quot;,
+    &quot;Haxe Application.MyApp.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/michelnielsen/Documents/GIT2/intellij-haxe/ExampleProjects/HeapsOnHLExample&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;
   }
 }</component>
-  <component name="RunManager">
+  <component name="RunManager" selected="HashLink.MyApp2">
     <configuration default="true" type="Applet" factoryName="Applet">
       <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
     </configuration>
@@ -207,6 +205,23 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="MyApp2" type="HLRunConfiguration" factoryName="HLRunConfiguration" show_console_on_std_err="false" show_console_on_std_out="false">
+      <option name="allowRunningInParallel" value="false" />
+      <option name="debugPort" value="6112" />
+      <option name="environmentVariables">
+        <map />
+      </option>
+      <option name="hlExecutablePath" value="$PROJECT_DIR$/../../../hashlink/build-x86_64/hl" />
+      <option name="passParentEnv" value="true" />
+      <option name="programArguments" value="" />
+      <option name="programPath" value="$PROJECT_DIR$/Export/hl/bin/MyApp.hl" />
+      <option name="projectPathOnTarget" />
+      <option name="selectedOptions">
+        <list />
+      </option>
+      <option name="workingDirectory" value="" />
+      <method v="2" />
     </configuration>
     <configuration name="MyApp" type="HaxeApplicationRunConfiguration" factoryName="Haxe Application" show_console_on_std_err="false" show_console_on_std_out="false">
       <module name="HeapsOnHLExample" />
@@ -241,6 +256,10 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="HashLink.MyApp2" />
+      <item itemvalue="Haxe Application.MyApp" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -335,9 +354,6 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
-  </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/Main.hx">
