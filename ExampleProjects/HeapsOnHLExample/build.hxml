@@ -2,6 +2,7 @@
 -cp src
 #-D analyzer-optimize
 -main Main
+-debug
 
 # Heaps
 -D resourcePath="res"
