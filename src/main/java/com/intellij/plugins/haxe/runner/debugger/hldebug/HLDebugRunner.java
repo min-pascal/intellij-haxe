@@ -69,19 +69,36 @@ public class HLDebugRunner extends GenericProgramRunner<RunnerSettings> {
                                               @NotNull ExecutionEnvironment environment) throws ExecutionException {
         Project project = environment.getProject();
         
+        LOG.info("=== HLDebugRunner.doExecute START ===");
+        LOG.info("Project: " + project.getName());
+        
         if (!(state instanceof HLDebuggerState)) {
+            LOG.error("Invalid run profile state: " + state.getClass().getName());
             throw new ExecutionException("Invalid run profile state for HashLink debugging");
         }
         
         HLDebuggerState hlState = (HLDebuggerState) state;
         HLRunConfiguration configuration = hlState.getConfiguration();
         
+        LOG.info("Configuration: " + configuration.getName());
+        LOG.info("  HL Path: " + configuration.getHlExecutablePath());
+        LOG.info("  Program: " + configuration.getProgramPath());
+        LOG.info("  Working Dir: " + configuration.getWorkingDirectory());
+        LOG.info("  Debug Port: " + configuration.getDebugPort());
+        
+        // Always use Node.js DAP adapter - it requires x86_64 Node with debugger entitlements on macOS
+        hlState.setUseDebugWait(true);
+        LOG.info("Using Node.js DAP adapter with --debug-wait");
+        
         // Execute the run state to get the process
+        LOG.info("Executing run state to start HashLink process...");
         ExecutionResult executionResult = state.execute(environment.getExecutor(), this);
         
         if (executionResult == null) {
+            LOG.error("ExecutionResult is null - failed to start HashLink process");
             throw new ExecutionException("Failed to start HashLink process");
         }
+        LOG.info("ExecutionResult obtained, ProcessHandler: " + executionResult.getProcessHandler());
         
         // Create debug session
         XDebugSession debugSession = XDebuggerManager.getInstance(project).startSession(
@@ -90,6 +107,7 @@ public class HLDebugRunner extends GenericProgramRunner<RunnerSettings> {
                 @NotNull
                 @Override
                 public XDebugProcess start(@NotNull XDebugSession session) throws ExecutionException {
+                    LOG.info("Using Node.js-based debugger");
                     return new HLDebugProcess(
                         session,
                         executionResult,
