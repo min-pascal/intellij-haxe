@@ -1,4 +1,15 @@
 # Changelog
+## 1.7.10
+* Bugfix: Fixed issue where capture variables would show the wrong type (#1233)
+* Improvement: Added imports and using from `import.hx` to completion suggestions (#1234)
+* Improvement: Support for numeric separators (#1232) 
+* Improvement: Completion for function `bind` and single character string `code` (#1231)
+
+## 1.7.9
+* Changed: Allow arbitrary amount of typeParameters when `@:genericBuild` macros are used in conjugation with TypeParameter named "Rest"
+* Bugfix: Fixed incorrect annotation on typeParameters when mixing TypeParameters with and without defaults
+* Bugfix: Fixed issue where completion suggestions would not include suggestions for imports in import.hx
+
 ## 1.7.8
 * Bugfix: Fixed issue where numeric operators would incorrectly display an error for platform specific numeric types  (#1228)
 * Added: Weak warning when assigning `null` to types annotated with @:notNull  

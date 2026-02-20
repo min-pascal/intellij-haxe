@@ -978,6 +978,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
+  public void testTypeParameterDefaults() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignFromRecursiveMethod() throws Throwable {
     doTestNoFixWithWarnings();
   }
@@ -1033,6 +1038,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
 
   @Test
   public void testSwitchPatternMatching() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+  @Test
+  public void testSwitchPatternMatchingArrays() throws Throwable {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
@@ -1136,5 +1146,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testAssignFunctionType6() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+ @Test
+ public void testGenericBuildTypeParameters() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+ }
 
 }
