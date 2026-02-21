@@ -291,6 +291,7 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeCompilerCompletionContributor"/>
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
+    <configurationType implementation="com.intellij.plugins.haxe.runner.debugger.hldebug.HLRunConfigurationType"/>
 
     <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
