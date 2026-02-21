@@ -35,13 +35,14 @@ public class HLDebuggerEvaluator extends XDebuggerEvaluator {
   private void evaluateExpression(@NotNull String expression, @NotNull XEvaluationCallback callback) {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       try {
-        Object result = process.evaluate(expression, frameId, "watch");
+        Map<String, Object> result = process.evaluate(expression, frameId, "watch");
         if (result != null) {
           Map<String, Object> syntheticMap = new HashMap<>();
           syntheticMap.put("name", expression);
-          syntheticMap.put("value", result.toString());
-          syntheticMap.put("type", "");
-          syntheticMap.put("variablesReference", 0);
+          Object resultValue = result.get("result");
+          syntheticMap.put("value", resultValue != null ? resultValue.toString() : "");
+          syntheticMap.put("type", result.get("type"));
+          syntheticMap.put("variablesReference", result.get("variablesReference"));
           callback.evaluated(new HLValue(process, syntheticMap));
         } else {
           callback.errorOccurred("Evaluation failed");

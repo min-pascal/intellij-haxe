@@ -19,7 +19,10 @@ import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
+import com.intellij.xdebugger.breakpoints.SuspendPolicy;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
+import com.intellij.xdebugger.frame.XExecutionStack;
+import com.intellij.xdebugger.frame.XStackFrame;
 import com.intellij.xdebugger.frame.XSuspendContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,6 +138,7 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         attachReq.setArgument("host", "127.0.0.1");
         attachReq.setArgument("cwd", effectiveCwd);
         attachReq.setArgument("classPaths", config.getSourcePaths());
+        attachReq.setArgument("program", config.getProgramPath());
 
         DAPResponse attachResp = dapClient.sendRequest(attachReq).get(15, TimeUnit.SECONDS);
         if (!attachResp.isSuccess()) {
@@ -143,11 +147,18 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
           return;
         }
 
+        // Flush pending breakpoints before configurationDone
+        for (String filePath : breakpointsByFile.keySet()) {
+          sendBreakpointsForFile(filePath);
+        }
+
         // Send configurationDone request
         DAPRequest cfgDoneReq = new DAPRequest("configurationDone");
         dapClient.sendRequest(cfgDoneReq).get(5, TimeUnit.SECONDS);
 
         sessionConnected = true;
+
+        // Resend any breakpoints registered during the configurationDone wait
         for (String filePath : breakpointsByFile.keySet()) {
           sendBreakpointsForFile(filePath);
         }
@@ -210,9 +221,34 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   public void resume(@Nullable XSuspendContext context) {
     if (dapClient == null || !dapClient.isRunning()) return;
     try {
+      boolean singleThread = false;
+      if (context != null) {
+        XExecutionStack activeStack = context.getActiveExecutionStack();
+        if (activeStack != null) {
+          XStackFrame topFrame = activeStack.getTopFrame();
+          if (topFrame != null) {
+            XSourcePosition position = topFrame.getSourcePosition();
+            if (position != null) {
+              String filePath = position.getFile().getPath();
+              int line0 = position.getLine();
+              List<XLineBreakpoint<?>> bps = breakpointsByFile.get(filePath);
+              if (bps != null) {
+                for (XLineBreakpoint<?> bp : bps) {
+                  XSourcePosition bpPos = bp.getSourcePosition();
+                  if (bpPos != null && bpPos.getLine() == line0) {
+                    singleThread = bp.getSuspendPolicy() == SuspendPolicy.THREAD
+                                   && capSupportsSingleThreadExecution;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       DAPRequest r = new DAPRequest("continue");
       r.setArgument("threadId", currentThreadId);
-      r.setArgument("singleThread", false);
+      r.setArgument("singleThread", singleThread);
       dapClient.sendRequest(r).get(5, TimeUnit.SECONDS);
     } catch (Exception e) {
       LOG.error("Failed to send continue request", e);
@@ -366,13 +402,23 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   }
 
   @Override
-  public Object evaluate(String expression, int frameId, String context) {
+  public Map<String, Object> evaluate(String expression, int frameId, String context) {
     try {
       DAPRequest r = new DAPRequest("evaluate");
       r.setArgument("expression", expression);
       r.setArgument("frameId", frameId);
       r.setArgument("context", context);
-      return dapClient.sendRequest(r).get(5, TimeUnit.SECONDS).getBody("result");
+      DAPResponse resp = dapClient.sendRequest(r).get(5, TimeUnit.SECONDS);
+      if (!resp.isSuccess()) {
+        LOG.debug("evaluate failed for expression: " + expression
+                  + "; message=" + resp.getMessage());
+        return null;
+      }
+      Map<String, Object> result = new LinkedHashMap<>();
+      result.put("result", resp.getBodyString("result", ""));
+      result.put("variablesReference", resp.getBodyInt("variablesReference", 0));
+      result.put("type", resp.getBodyString("type", ""));
+      return result;
     } catch (Exception e) {
       LOG.error("Failed to evaluate expression: " + expression, e);
       return null;

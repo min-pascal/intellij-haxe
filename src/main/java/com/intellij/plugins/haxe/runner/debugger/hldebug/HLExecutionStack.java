@@ -56,7 +56,8 @@ public class HLExecutionStack extends XExecutionStack {
   @Override
   public void computeStackFrames(int firstFrameIndex, @NotNull XStackFrameContainer container) {
     if (preloadedFrames != null) {
-      container.addStackFrames(preloadedFrames.subList(firstFrameIndex, preloadedFrames.size()), true);
+      int startIndex = Math.min(firstFrameIndex, preloadedFrames.size());
+      container.addStackFrames(preloadedFrames.subList(startIndex, preloadedFrames.size()), true);
     } else {
       ApplicationManager.getApplication().executeOnPooledThread(() -> {
         try {

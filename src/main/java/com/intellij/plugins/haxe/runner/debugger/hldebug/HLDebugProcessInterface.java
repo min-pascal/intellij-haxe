@@ -15,5 +15,5 @@ public interface HLDebugProcessInterface {
 
   List<Map<String, Object>> getVariables(int variablesReference);
 
-  Object evaluate(String expression, int frameId, String context);
+  Map<String, Object> evaluate(String expression, int frameId, String context);
 }
