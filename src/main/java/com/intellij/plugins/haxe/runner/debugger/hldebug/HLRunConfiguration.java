@@ -151,7 +151,7 @@ public class HLRunConfiguration extends RunConfigurationBase<RunProfileState> {
   @Override
   public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment)
       throws ExecutionException {
-    throw new ExecutionException("HLDebuggerState not yet implemented");
+    return new HLDebuggerState(this, environment);
   }
 
   @NotNull

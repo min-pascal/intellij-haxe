@@ -127,6 +127,7 @@
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.hldebug.HLDebugRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
