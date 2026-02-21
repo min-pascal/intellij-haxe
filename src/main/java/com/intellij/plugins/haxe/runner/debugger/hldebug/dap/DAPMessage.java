@@ -1,59 +1,31 @@
-/*
- * Copyright 2024 Haxe Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.intellij.plugins.haxe.runner.debugger.hldebug.dap;
 
 import com.google.gson.JsonObject;
 
+import java.nio.charset.StandardCharsets;
+
 /**
- * Base class for DAP (Debug Adapter Protocol) messages.
- * 
- * DAP uses JSON-RPC-like messages with a header specifying content length.
- * Format: "Content-Length: <length>\r\n\r\n<JSON body>"
+ * Abstract base class for all DAP protocol messages.
+ * Handles proper UTF-8 byte-length encoding for the Content-Length header.
  */
 public abstract class DAPMessage {
-    protected int seq;
-    protected String type;
-    
-    public DAPMessage(String type) {
-        this.type = type;
-    }
-    
-    public int getSeq() {
-        return seq;
-    }
-    
-    public void setSeq(int seq) {
-        this.seq = seq;
-    }
-    
-    public String getType() {
-        return type;
-    }
-    
-    /**
-     * Convert this message to a JSON object for sending.
-     */
-    public abstract JsonObject toJson();
-    
-    /**
-     * Encode this message for sending over the wire.
-     * Format: "Content-Length: <length>\r\n\r\n<JSON body>"
-     */
-    public String encode() {
-        String json = toJson().toString();
-        return "Content-Length: " + json.length() + "\r\n\r\n" + json;
-    }
+
+  /**
+   * Converts this message to its JSON representation.
+   *
+   * @return JsonObject representing the message
+   */
+  public abstract JsonObject toJson();
+
+  /**
+   * Encodes the message into DAP wire format with proper UTF-8 byte length.
+   * Critical: Uses UTF-8 byte length, not character count, to handle non-ASCII characters.
+   *
+   * @return Wire-formatted string with Content-Length header
+   */
+  public String encode() {
+    String jsonString = toJson().toString();
+    int byteLength = jsonString.getBytes(StandardCharsets.UTF_8).length;
+    return "Content-Length: " + byteLength + "\r\n\r\n" + jsonString;
+  }
 }
