@@ -5,8 +5,10 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPClient;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPEvent;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPRequest;
@@ -15,6 +17,8 @@ import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
+import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
+import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.frame.XSuspendContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,9 +28,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -43,6 +51,8 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   private boolean capSupportsLogPoints = false;
   private boolean capSupportsEvaluateForHovers = false;
   private boolean capSupportsSingleThreadExecution = false;
+  private final Map<String, List<XLineBreakpoint<?>>> breakpointsByFile = new ConcurrentHashMap<>();
+  private volatile boolean sessionConnected = false;
 
   public HLDebugProcess(@NotNull XDebugSession session, HLRunConfiguration config, ExecutionResult executionResult) {
     super(session);
@@ -137,6 +147,11 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         DAPRequest cfgDoneReq = new DAPRequest("configurationDone");
         dapClient.sendRequest(cfgDoneReq).get(5, TimeUnit.SECONDS);
 
+        sessionConnected = true;
+        for (String filePath : breakpointsByFile.keySet()) {
+          sendBreakpointsForFile(filePath);
+        }
+
         printToConsole("HashLink debugger connected. Running.\n");
       } catch (Exception e) {
         LOG.error("Error during DAP session startup", e);
@@ -148,8 +163,14 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   private void handleEvent(DAPEvent event) {
     switch (event.getEvent()) {
       case "stopped":
-        currentThreadId = event.getBodyInt("threadId", -1);
-        getSession().positionReached(new XSuspendContext() {});  // stub — replaced in T5
+        int threadId = event.getBodyInt("threadId", -1);
+        currentThreadId = threadId;
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          HLSuspendContext context = new HLSuspendContext(this, threadId);
+          ApplicationManager.getApplication().invokeLater(() -> {
+            getSession().positionReached(context);
+          });
+        });
         break;
       case "continued":
         break;  // no-op
@@ -242,6 +263,7 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
 
   @Override
   public void stop() {
+    sessionConnected = false;
     if (dapClient != null && dapClient.isRunning()) {
       DAPRequest disconnectReq = new DAPRequest("disconnect");
       disconnectReq.setArgument("terminateDebuggee", true);
@@ -263,7 +285,30 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   @NotNull
   @Override
   public XBreakpointHandler<?>[] getBreakpointHandlers() {
-    return new XBreakpointHandler<?>[0];
+    return new XBreakpointHandler<?>[]{
+        new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties<?>>>(HLBreakpointType.class) {
+          @Override
+          public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties<?>> breakpoint) {
+            HLDebugProcess.this.registerBreakpoint(breakpoint);
+          }
+
+          @Override
+          public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties<?>> breakpoint, boolean temporary) {
+            HLDebugProcess.this.unregisterBreakpoint(breakpoint);
+          }
+        },
+        new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(HaxeBreakpointType.class) {
+          @Override
+          public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint) {
+            HLDebugProcess.this.registerBreakpoint(breakpoint);
+          }
+
+          @Override
+          public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
+            HLDebugProcess.this.unregisterBreakpoint(breakpoint);
+          }
+        }
+    };
   }
 
   @Nullable
@@ -331,6 +376,78 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     } catch (Exception e) {
       LOG.error("Failed to evaluate expression: " + expression, e);
       return null;
+    }
+  }
+
+  // --- Breakpoint methods ---
+
+  private void registerBreakpoint(XLineBreakpoint<?> bp) {
+    XSourcePosition pos = bp.getSourcePosition();
+    if (pos == null) return;
+    String filePath = pos.getFile().getPath();
+    breakpointsByFile.computeIfAbsent(filePath, k -> new CopyOnWriteArrayList<>()).add(bp);
+    if (sessionConnected && dapClient != null && dapClient.isRunning()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> sendBreakpointsForFile(filePath));
+    }
+  }
+
+  private void unregisterBreakpoint(XLineBreakpoint<?> bp) {
+    XSourcePosition pos = bp.getSourcePosition();
+    if (pos == null) return;
+    String filePath = pos.getFile().getPath();
+    List<XLineBreakpoint<?>> bps = breakpointsByFile.get(filePath);
+    if (bps != null) {
+      bps.remove(bp);
+    }
+    if (sessionConnected && dapClient != null && dapClient.isRunning()) {
+      ApplicationManager.getApplication().executeOnPooledThread(() -> sendBreakpointsForFile(filePath));
+    }
+  }
+
+  private void sendBreakpointsForFile(String filePath) {
+    try {
+      List<XLineBreakpoint<?>> bps = breakpointsByFile.getOrDefault(filePath, Collections.emptyList());
+
+      DAPRequest req = new DAPRequest("setBreakpoints");
+      Map<String, Object> source = new LinkedHashMap<>();
+      source.put("path", filePath);
+      req.setArgument("source", source);
+
+      List<Map<String, Object>> breakpointEntries = new ArrayList<>();
+      List<XLineBreakpoint<?>> requestedBps = new ArrayList<>();
+      for (XLineBreakpoint<?> bp : bps) {
+        XSourcePosition pos = bp.getSourcePosition();
+        if (pos == null) continue;
+        Map<String, Object> entry = new LinkedHashMap<>();
+        entry.put("line", pos.getLine() + 1);
+        if (capSupportsConditionalBreakpoints && bp.getConditionExpression() != null
+            && !bp.getConditionExpression().getExpression().isBlank()) {
+          entry.put("condition", bp.getConditionExpression().getExpression());
+        }
+        if (capSupportsLogPoints && bp.getLogExpressionObject() != null
+            && !bp.getLogExpressionObject().getExpression().isBlank()) {
+          entry.put("logMessage", bp.getLogExpressionObject().getExpression());
+        }
+        breakpointEntries.add(entry);
+        requestedBps.add(bp);
+      }
+      req.setArgument("breakpoints", breakpointEntries);
+
+      DAPResponse resp = dapClient.sendRequest(req).get(5, TimeUnit.SECONDS);
+      if (resp.isSuccess()) {
+        List<Map<String, Object>> results = resp.getBodyList("breakpoints");
+        for (int i = 0; i < results.size() && i < requestedBps.size(); i++) {
+          Map<String, Object> result = results.get(i);
+          if (Boolean.TRUE.equals(result.get("verified"))) {
+            getSession().updateBreakpointPresentation(requestedBps.get(i), null, null);
+          } else {
+            String message = result.get("message") instanceof String s ? s : "Unverified";
+            getSession().updateBreakpointPresentation(requestedBps.get(i), AllIcons.Debugger.Db_invalid_breakpoint, message);
+          }
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to send breakpoints for file: " + filePath, e);
     }
   }
 

@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.hldebug;
 
-import com.intellij.lang.plain.PlainTextLanguage;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
