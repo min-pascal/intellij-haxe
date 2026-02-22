@@ -34,7 +34,7 @@ public class HLDebugRunner extends GenericProgramRunner<RunnerSettings> {
   @Override
   protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env)
       throws ExecutionException {
-    HLRunConfiguration config = (HLRunConfiguration) env.getRunProfile();
+    HLDebugConfig config = (HLDebugConfig) env.getRunProfile();
     HLDebuggerState hlState = (HLDebuggerState) state;
     ExecutionResult executionResult = hlState.execute(env.getExecutor(), this);
 

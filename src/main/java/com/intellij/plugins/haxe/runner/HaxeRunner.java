@@ -114,17 +114,22 @@ public class HaxeRunner extends GenericProgramRunner<RunnerSettings> {
       return null;
     }
 
-    if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
+    if (settings.getCompilationTarget() == HaxeTarget.FLASH) {
       BrowserUtil.open(getOutputFilePath(module, settings));
       return null;
     }
 
-    if(settings.getHaxeTarget() == HaxeTarget.INTERP) {
+    if(settings.getCompilationTarget() == HaxeTarget.INTERP) {
       return null;
     }
 
-    if (settings.getHaxeTarget() != HaxeTarget.NEKO) {
-      throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getHaxeTarget()));
+    if (settings.getCompilationTarget() == HaxeTarget.HL) {
+      final String hlOutput = getOutputFilePath(module, settings);
+      return executeState(new HaxeHashLinkRunningState(environment, module, hlOutput), environment, this);
+    }
+
+    if (settings.getCompilationTarget() != HaxeTarget.NEKO) {
+      throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getCompilationTarget()));
     }
 
     final NekoRunningState nekoRunningState = new NekoRunningState(environment, module, null);

@@ -21,9 +21,9 @@ import java.net.ServerSocket;
 
 public class HLDebuggerState extends CommandLineState {
 
-  private final HLRunConfiguration config;
+  private final HLDebugConfig config;
 
-  public HLDebuggerState(HLRunConfiguration config, ExecutionEnvironment environment) {
+  public HLDebuggerState(HLDebugConfig config, ExecutionEnvironment environment) {
     super(environment);
     this.config = config;
   }

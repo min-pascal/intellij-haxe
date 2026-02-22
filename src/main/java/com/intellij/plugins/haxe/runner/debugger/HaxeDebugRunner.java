@@ -22,6 +22,7 @@ import com.intellij.compiler.ProblemsView;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.configurations.RunnerSettings;
@@ -55,6 +56,10 @@ import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.runner.debugger.hldebug.HLAutoDebugConfig;
+import com.intellij.plugins.haxe.runner.debugger.hldebug.HLDebugConfig;
+import com.intellij.plugins.haxe.runner.debugger.hldebug.HLDebugProcess;
+import com.intellij.plugins.haxe.runner.debugger.hldebug.HLDebuggerState;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
 import com.intellij.plugins.haxe.runner.OpenFLRunningState;
@@ -132,14 +137,18 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     final HaxeModuleSettings settings =
       HaxeModuleSettings.getInstance(module);
 
-    boolean flashDebug = false, hxcppDebug = false;
+    boolean flashDebug = false, hxcppDebug = false, hlDebug = false;
 
     if (settings.isUseHxmlToBuild() || settings.isUseUserPropertiesToBuild()) {
-      if (settings.getHaxeTarget() == HaxeTarget.FLASH) {
+      HaxeTarget compilationTarget = settings.getCompilationTarget();
+      if (compilationTarget == HaxeTarget.FLASH) {
         flashDebug = true;
       }
-      else if (settings.getHaxeTarget() == HaxeTarget.CPP) {
+      else if (compilationTarget == HaxeTarget.CPP) {
         hxcppDebug = true;
+      }
+      else if (compilationTarget == HaxeTarget.HL) {
+        hlDebug = true;
       }
     }
     else if (settings.isUseNmmlToBuild()) {
@@ -192,6 +201,10 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
       return runHxcpp(project, module, settings, env, executor,
                       configuration.getCustomDebugPort(),
                       configuration.isCustomRemoteDebugging());
+    }
+    else if (hlDebug) {
+      final Project project = env.getProject();
+      return runHashLink(project, module, env, configuration.getCustomDebugPort());
     }
     else {
       throw new ExecutionException
@@ -305,6 +318,67 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
          });
 
     return debugSession.getRunContentDescriptor();
+  }
+
+  private RunContentDescriptor runHashLink(final Project project,
+                                           final Module module,
+                                           final ExecutionEnvironment env,
+                                           final int customPort)
+    throws ExecutionException {
+    final HLDebugConfig config = new HLAutoDebugConfig(project, module, customPort);
+
+    // Validate that the .hl program file exists
+    final String programPath = config.getProgramPath();
+    if (programPath == null || programPath.isEmpty()) {
+      throw new ExecutionException("Cannot determine HashLink output file (.hl). " +
+                                   "Make sure your build configuration targets HashLink (-hl flag).");
+    }
+
+    final XDebugSession debugSession =
+      XDebuggerManager.getInstance(project).startSession(
+        env,
+        new XDebugProcessStarter() {
+          @NotNull
+          @Override
+          public XDebugProcess start(@NotNull XDebugSession session) throws ExecutionException {
+            // Use launch mode: the DAP adapter will spawn the HL process itself.
+            // This is required on macOS because the adapter needs parent-child
+            // process relationship to access HL's memory via Mach task ports.
+            return new HLDebugProcess(session, config, null, true);
+          }
+        }
+      );
+
+    return debugSession.getRunContentDescriptor();
+  }
+
+  /**
+   * Sets up environment variables for a HashLink process, in particular
+   * DYLD_LIBRARY_PATH (macOS) so HL can find its shared libraries (.hdll/.dylib).
+   */
+  private static void setupHlEnvironment(GeneralCommandLine commandLine, String hlExecutablePath) {
+    // Propagate DYLD_LIBRARY_PATH if already set in the environment
+    String dylibPath = System.getenv("DYLD_LIBRARY_PATH");
+    if (dylibPath != null && !dylibPath.isEmpty()) {
+      commandLine.withEnvironment("DYLD_LIBRARY_PATH", dylibPath);
+    } else {
+      // Derive from the HL executable's directory (where .hdll and .dylib files typically reside)
+      java.io.File hlDir = new java.io.File(hlExecutablePath).getParentFile();
+      if (hlDir != null && hlDir.isDirectory()) {
+        commandLine.withEnvironment("DYLD_LIBRARY_PATH", hlDir.getAbsolutePath());
+      }
+    }
+
+    // Also propagate LD_LIBRARY_PATH for Linux
+    String ldPath = System.getenv("LD_LIBRARY_PATH");
+    if (ldPath != null && !ldPath.isEmpty()) {
+      commandLine.withEnvironment("LD_LIBRARY_PATH", ldPath);
+    } else {
+      java.io.File hlDir = new java.io.File(hlExecutablePath).getParentFile();
+      if (hlDir != null && hlDir.isDirectory()) {
+        commandLine.withEnvironment("LD_LIBRARY_PATH", hlDir.getAbsolutePath());
+      }
+    }
   }
 
   private class DebugProcess extends XDebugProcess {

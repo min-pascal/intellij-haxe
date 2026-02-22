@@ -9,6 +9,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
+import com.intellij.util.EnvironmentUtil;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPClient;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPEvent;
 import com.intellij.plugins.haxe.runner.debugger.hldebug.dap.DAPRequest;
@@ -45,8 +46,9 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
 
   private static final Logger LOG = Logger.getInstance(HLDebugProcess.class);
 
-  private final HLRunConfiguration config;
+  private final HLDebugConfig config;
   private final ExecutionResult executionResult;
+  private final boolean useLaunchMode;
   private DAPClient dapClient;
   private Process adapterProcess;
   private volatile int currentThreadId = -1;
@@ -57,10 +59,20 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   private final Map<String, List<XLineBreakpoint<?>>> breakpointsByFile = new ConcurrentHashMap<>();
   private volatile boolean sessionConnected = false;
 
-  public HLDebugProcess(@NotNull XDebugSession session, HLRunConfiguration config, ExecutionResult executionResult) {
+  public HLDebugProcess(@NotNull XDebugSession session, HLDebugConfig config, ExecutionResult executionResult) {
+    this(session, config, executionResult, false);
+  }
+
+  /**
+   * @param useLaunchMode if true, sends a DAP 'launch' request (adapter spawns HL);
+   *                      if false, sends an 'attach' request (expects HL already running).
+   */
+  public HLDebugProcess(@NotNull XDebugSession session, HLDebugConfig config,
+                        ExecutionResult executionResult, boolean useLaunchMode) {
     super(session);
     this.config = config;
     this.executionResult = executionResult;
+    this.useLaunchMode = useLaunchMode;
   }
 
   @Override
@@ -70,21 +82,27 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         printToConsole("Starting HashLink debug adapter...\n");
 
         // Spawn adapter
-        ProcessBuilder pb = new ProcessBuilder(config.getNodePath(), config.getAdapterPath());
+        String nodePath = config.getNodePath();
+        String adapterPath = config.getAdapterPath();
+        LOG.info("[HL Debug] Spawning adapter: node=" + nodePath + " adapter=" + adapterPath);
+        ProcessBuilder pb = new ProcessBuilder(nodePath, adapterPath);
+        pb.redirectErrorStream(false);
         adapterProcess = pb.start();
 
-        // Drain stderr on a daemon thread to prevent blocking and keep DAP framing clean
+        LOG.info("[HL Debug] Adapter process started, PID=" + adapterProcess.pid());
+
+        // Start reading stderr from the adapter in a daemon thread
         Thread stderrReader = new Thread(() -> {
           try (BufferedReader reader = new BufferedReader(
-              new InputStreamReader(adapterProcess.getErrorStream(), StandardCharsets.UTF_8))) {
+                 new InputStreamReader(adapterProcess.getErrorStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
-              printToConsole(line + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+              printToConsole("[adapter] " + line + "\n");
             }
           } catch (IOException e) {
-            LOG.debug("Adapter stderr reader terminated", e);
+            // Expected when process exits
           }
-        }, "DAP-Stderr-Reader");
+        }, "HL-Adapter-Stderr");
         stderrReader.setDaemon(true);
         stderrReader.start();
 
@@ -126,23 +144,77 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         capSupportsEvaluateForHovers = initResp.getBodyBool("supportsEvaluateForHovers", false);
         capSupportsSingleThreadExecution = initResp.getBodyBool("supportsSingleThreadExecutionRequests", false);
 
-        // Send attach request
+        // Send attach or launch request
         String effectiveCwd = config.getWorkingDirectory();
         if (effectiveCwd == null || effectiveCwd.isBlank()) {
           effectiveCwd = config.getProject().getBasePath();
         }
-        printToConsole("Connecting to HashLink on port " + config.getDebugPort() + " (cwd: " + effectiveCwd + ")...\n");
 
-        DAPRequest attachReq = new DAPRequest("attach");
-        attachReq.setArgument("port", config.getDebugPort());
-        attachReq.setArgument("host", "127.0.0.1");
-        attachReq.setArgument("cwd", effectiveCwd);
-        attachReq.setArgument("classPaths", config.getSourcePaths());
-        attachReq.setArgument("program", config.getProgramPath());
+        DAPResponse connectResp;
+        if (useLaunchMode) {
+          String hlPath = config.getHlExecutablePath();
+          String progPath = config.getProgramPath();
+          int port = config.getDebugPort();
+          List<String> srcPaths = config.getSourcePaths();
 
-        DAPResponse attachResp = dapClient.sendRequest(attachReq).get(15, TimeUnit.SECONDS);
-        if (!attachResp.isSuccess()) {
-          printToConsole("Failed to attach to HashLink\n");
+          // On macOS arm64, ensure HL has the get-task-allow entitlement
+          // so the debugger can attach via task_for_pid
+          ensureDebugEntitlement(hlPath);
+
+          LOG.info("[HL Debug] Launch params: hl=" + hlPath + " program=" + progPath +
+                   " port=" + port + " cwd=" + effectiveCwd + " classPaths=" + srcPaths);
+          LOG.info("[HL Debug] Adapter alive: " + adapterProcess.isAlive());
+          printToConsole("Launching HashLink via debug adapter (cwd: " + effectiveCwd + ")...\n");
+
+          DAPRequest launchReq = new DAPRequest("launch");
+          launchReq.setArgument("cwd", effectiveCwd);
+          launchReq.setArgument("hl", hlPath);
+          launchReq.setArgument("program", progPath);
+          launchReq.setArgument("port", port);
+          launchReq.setArgument("classPaths", srcPaths);
+
+          // Pass environment so HL can find its shared libraries
+          Map<String, String> env = new LinkedHashMap<>();
+          String dylibPath = getShellEnv("DYLD_LIBRARY_PATH");
+          if (dylibPath != null && !dylibPath.isEmpty()) {
+            env.put("DYLD_LIBRARY_PATH", dylibPath);
+          } else {
+            java.io.File hlDir = new java.io.File(config.getHlExecutablePath()).getParentFile();
+            if (hlDir != null && hlDir.isDirectory()) {
+              env.put("DYLD_LIBRARY_PATH", hlDir.getAbsolutePath());
+            }
+          }
+          String ldPath = getShellEnv("LD_LIBRARY_PATH");
+          if (ldPath != null && !ldPath.isEmpty()) {
+            env.put("LD_LIBRARY_PATH", ldPath);
+          }
+          if (!env.isEmpty()) {
+            launchReq.setArgument("env", env);
+          }
+
+          String progArgs = config.getProgramArguments();
+          if (progArgs != null && !progArgs.isBlank()) {
+            launchReq.setArgument("args", List.of(progArgs.split("\\s+")));
+          }
+
+          connectResp = dapClient.sendRequest(launchReq).get(15, TimeUnit.SECONDS);
+        } else {
+          printToConsole("Connecting to HashLink on port " + config.getDebugPort() + " (cwd: " + effectiveCwd + ")...\n");
+
+          DAPRequest attachReq = new DAPRequest("attach");
+          attachReq.setArgument("port", config.getDebugPort());
+          attachReq.setArgument("host", "127.0.0.1");
+          attachReq.setArgument("cwd", effectiveCwd);
+          attachReq.setArgument("classPaths", config.getSourcePaths());
+          attachReq.setArgument("program", config.getProgramPath());
+
+          connectResp = dapClient.sendRequest(attachReq).get(15, TimeUnit.SECONDS);
+        }
+
+        if (!connectResp.isSuccess()) {
+          String msg = connectResp.getMessage();
+          printToConsole("Failed to " + (useLaunchMode ? "launch" : "attach to") + " HashLink" +
+                         (msg != null ? ": " + msg : "") + "\n");
           ApplicationManager.getApplication().invokeLater(() -> getSession().stop());
           return;
         }
@@ -166,6 +238,31 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         printToConsole("HashLink debugger connected. Running.\n");
       } catch (Exception e) {
         LOG.error("Error during DAP session startup", e);
+        // Try to capture adapter exit code and stderr for diagnostics
+        if (adapterProcess != null) {
+          try {
+            boolean exited = adapterProcess.waitFor(1, TimeUnit.SECONDS);
+            if (exited) {
+              LOG.error("[HL Debug] Adapter exited with code: " + adapterProcess.exitValue());
+            } else {
+              LOG.error("[HL Debug] Adapter still running despite error");
+            }
+          } catch (InterruptedException ie) {
+            // ignore
+          }
+        }
+        // Read stderr log file
+        try {
+          java.io.File stderrLog = new java.io.File(System.getProperty("java.io.tmpdir"), "hl_adapter_stderr.log");
+          if (stderrLog.exists()) {
+            String stderr = new String(java.nio.file.Files.readAllBytes(stderrLog.toPath()), StandardCharsets.UTF_8);
+            if (!stderr.isBlank()) {
+              LOG.error("[HL Debug] Adapter stderr:\n" + stderr.substring(0, Math.min(stderr.length(), 2000)));
+            }
+          }
+        } catch (Exception ex) {
+          LOG.debug("Could not read adapter stderr log", ex);
+        }
         ApplicationManager.getApplication().invokeLater(() -> getSession().stop());
       }
     });
@@ -311,7 +408,7 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     if (adapterProcess != null) {
       adapterProcess.destroyForcibly();
     }
-    if (executionResult.getProcessHandler() != null) {
+    if (executionResult != null && executionResult.getProcessHandler() != null) {
       executionResult.getProcessHandler().destroyProcess();
     }
   }
@@ -350,13 +447,13 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   @Nullable
   @Override
   protected ProcessHandler doGetProcessHandler() {
-    return executionResult.getProcessHandler();
+    return executionResult != null ? executionResult.getProcessHandler() : null;
   }
 
   @NotNull
   @Override
   public ExecutionConsole createConsole() {
-    return executionResult.getExecutionConsole();
+    return executionResult != null ? executionResult.getExecutionConsole() : super.createConsole();
   }
 
   @NotNull
@@ -504,9 +601,82 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   }
 
   private void printToConsole(String message, ConsoleViewContentType type) {
-    ExecutionConsole console = executionResult.getExecutionConsole();
+    ExecutionConsole console = executionResult != null ? executionResult.getExecutionConsole() : null;
     if (console instanceof ConsoleView consoleView) {
       consoleView.print(message, type);
+    } else {
+      // Fallback: log to the debug session's console if available
+      LOG.info("[HL Debug] " + message.trim());
+    }
+  }
+
+  private static String getShellEnv(String name) {
+    try {
+      String value = EnvironmentUtil.getValue(name);
+      if (value != null && !value.isEmpty()) return value;
+    } catch (Exception e) {
+      // Fall through
+    }
+    return System.getenv(name);
+  }
+
+  /**
+   * On macOS, ensures the HL executable has the {@code com.apple.security.get-task-allow}
+   * entitlement. Without this, {@code task_for_pid()} fails when the debugger node process
+   * is launched from a GUI application (like the IDE) rather than a terminal.
+   * <p>
+   * This re-signs the binary ad-hoc with the entitlement. It's idempotent —
+   * if the entitlement is already present, the signing is skipped.
+   */
+  private static void ensureDebugEntitlement(String hlPath) {
+    if (!"Mac OS X".equals(System.getProperty("os.name"))) return;
+    if (hlPath == null || hlPath.isBlank()) return;
+
+    java.io.File hlFile = new java.io.File(hlPath);
+    if (!hlFile.isFile()) return;
+
+    try {
+      // Check if the entitlement is already present
+      ProcessBuilder checkPb = new ProcessBuilder("codesign", "-d", "--entitlements", "-", hlPath);
+      checkPb.redirectErrorStream(true);
+      Process checkProc = checkPb.start();
+      String output = new String(checkProc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      checkProc.waitFor(5, TimeUnit.SECONDS);
+
+      if (output.contains("get-task-allow")) {
+        LOG.debug("[HL Debug] HL binary already has get-task-allow entitlement");
+        return;
+      }
+
+      LOG.info("[HL Debug] Signing HL binary with get-task-allow entitlement: " + hlPath);
+
+      // Create a temporary entitlements plist
+      java.io.File entFile = java.io.File.createTempFile("hl_debug_ent_", ".plist");
+      entFile.deleteOnExit();
+      java.nio.file.Files.writeString(entFile.toPath(),
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" " +
+        "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" +
+        "<plist version=\"1.0\"><dict>\n" +
+        "<key>com.apple.security.get-task-allow</key><true/>\n" +
+        "</dict></plist>\n");
+
+      ProcessBuilder signPb = new ProcessBuilder(
+        "codesign", "--force", "--sign", "-", "--entitlements", entFile.getAbsolutePath(), hlPath);
+      signPb.redirectErrorStream(true);
+      Process signProc = signPb.start();
+      String signOutput = new String(signProc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      int exitCode = signProc.waitFor();
+
+      if (exitCode == 0) {
+        LOG.info("[HL Debug] Successfully signed HL binary with debug entitlement");
+      } else {
+        LOG.warn("[HL Debug] Failed to sign HL binary (exit " + exitCode + "): " + signOutput);
+      }
+
+      entFile.delete();
+    } catch (Exception e) {
+      LOG.warn("[HL Debug] Could not check/sign HL binary entitlement", e);
     }
   }
 }
