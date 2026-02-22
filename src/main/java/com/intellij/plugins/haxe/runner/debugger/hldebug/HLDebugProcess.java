@@ -5,6 +5,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,6 +60,8 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   private boolean capSupportsSingleThreadExecution = false;
   private final Map<String, List<XLineBreakpoint<?>>> breakpointsByFile = new ConcurrentHashMap<>();
   private volatile boolean sessionConnected = false;
+  private volatile ConsoleView consoleView;
+  private volatile ProcessHandler adapterProcessHandler;
 
   public HLDebugProcess(@NotNull XDebugSession session, HLDebugConfig config, ExecutionResult executionResult) {
     this(session, config, executionResult, false);
@@ -90,6 +94,10 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         adapterProcess = pb.start();
 
         LOG.info("[HL Debug] Adapter process started, PID=" + adapterProcess.pid());
+
+        // Create a process handler so the IDE can track the adapter lifecycle
+        adapterProcessHandler = new AdapterProcessHandler(adapterProcess);
+        adapterProcessHandler.startNotify();
 
         // Start reading stderr from the adapter in a daemon thread
         Thread stderrReader = new Thread(() -> {
@@ -398,15 +406,22 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   public void stop() {
     sessionConnected = false;
     if (dapClient != null && dapClient.isRunning()) {
-      DAPRequest disconnectReq = new DAPRequest("disconnect");
-      disconnectReq.setArgument("terminateDebuggee", true);
-      dapClient.sendRequest(disconnectReq);
+      try {
+        DAPRequest disconnectReq = new DAPRequest("disconnect");
+        disconnectReq.setArgument("terminateDebuggee", true);
+        dapClient.sendRequest(disconnectReq).get(3, TimeUnit.SECONDS);
+      } catch (Exception e) {
+        LOG.debug("Disconnect request failed (expected if adapter already exited)", e);
+      }
     }
     if (dapClient != null) {
       dapClient.stop();
     }
     if (adapterProcess != null) {
       adapterProcess.destroyForcibly();
+    }
+    if (adapterProcessHandler != null) {
+      adapterProcessHandler.destroyProcess();
     }
     if (executionResult != null && executionResult.getProcessHandler() != null) {
       executionResult.getProcessHandler().destroyProcess();
@@ -447,13 +462,27 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   @Nullable
   @Override
   protected ProcessHandler doGetProcessHandler() {
-    return executionResult != null ? executionResult.getProcessHandler() : null;
+    if (executionResult != null && executionResult.getProcessHandler() != null) {
+      return executionResult.getProcessHandler();
+    }
+    return adapterProcessHandler;
   }
 
   @NotNull
   @Override
   public ExecutionConsole createConsole() {
-    return executionResult != null ? executionResult.getExecutionConsole() : super.createConsole();
+    if (executionResult != null && executionResult.getExecutionConsole() != null) {
+      ExecutionConsole ec = executionResult.getExecutionConsole();
+      if (ec instanceof ConsoleView cv) {
+        this.consoleView = cv;
+      }
+      return ec;
+    }
+    // Create our own console for launch mode (executionResult is null)
+    ConsoleView cv = TextConsoleBuilderFactory.getInstance()
+        .createBuilder(getSession().getProject()).getConsole();
+    this.consoleView = cv;
+    return cv;
   }
 
   @NotNull
@@ -601,11 +630,11 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   }
 
   private void printToConsole(String message, ConsoleViewContentType type) {
-    ExecutionConsole console = executionResult != null ? executionResult.getExecutionConsole() : null;
-    if (console instanceof ConsoleView consoleView) {
-      consoleView.print(message, type);
+    ConsoleView cv = this.consoleView;
+    if (cv != null) {
+      cv.print(message, type);
     } else {
-      // Fallback: log to the debug session's console if available
+      // Console not yet created — log as fallback
       LOG.info("[HL Debug] " + message.trim());
     }
   }
@@ -628,6 +657,51 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
    * This re-signs the binary ad-hoc with the entitlement. It's idempotent —
    * if the entitlement is already present, the signing is skipped.
    */
+  /**
+   * A lightweight ProcessHandler wrapping the debug adapter (node) process.
+   * This enables the IDE's stop button and process lifecycle tracking.
+   */
+  private static class AdapterProcessHandler extends ProcessHandler {
+    private final Process process;
+
+    AdapterProcessHandler(Process process) {
+      this.process = process;
+      // Monitor the process in a daemon thread so we get notified when it exits
+      Thread monitor = new Thread(() -> {
+        try {
+          int exitCode = process.waitFor();
+          notifyProcessTerminated(exitCode);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+      }, "HL-Adapter-Monitor");
+      monitor.setDaemon(true);
+      monitor.start();
+    }
+
+    @Override
+    protected void destroyProcessImpl() {
+      process.destroyForcibly();
+    }
+
+    @Override
+    protected void detachProcessImpl() {
+      process.destroyForcibly();
+      notifyProcessDetached();
+    }
+
+    @Override
+    public boolean detachIsDefault() {
+      return false;
+    }
+
+    @Nullable
+    @Override
+    public OutputStream getProcessInput() {
+      return process.getOutputStream();
+    }
+  }
+
   private static void ensureDebugEntitlement(String hlPath) {
     if (!"Mac OS X".equals(System.getProperty("os.name"))) return;
     if (hlPath == null || hlPath.isBlank()) return;
