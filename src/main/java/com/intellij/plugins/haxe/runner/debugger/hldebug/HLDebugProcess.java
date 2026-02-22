@@ -91,28 +91,17 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         LOG.info("[HL Debug] Spawning adapter: node=" + nodePath + " adapter=" + adapterPath);
         ProcessBuilder pb = new ProcessBuilder(nodePath, adapterPath);
         pb.redirectErrorStream(false);
+        // Redirect stderr to file so native (C) debug output is captured
+        java.io.File stderrFile = new java.io.File(System.getProperty("java.io.tmpdir"), "hl_adapter_stderr.log");
+        pb.redirectError(ProcessBuilder.Redirect.to(stderrFile));
         adapterProcess = pb.start();
 
         LOG.info("[HL Debug] Adapter process started, PID=" + adapterProcess.pid());
+        LOG.info("[HL Debug] Adapter stderr -> " + stderrFile.getAbsolutePath());
 
         // Create a process handler so the IDE can track the adapter lifecycle
         adapterProcessHandler = new AdapterProcessHandler(adapterProcess);
         adapterProcessHandler.startNotify();
-
-        // Start reading stderr from the adapter in a daemon thread
-        Thread stderrReader = new Thread(() -> {
-          try (BufferedReader reader = new BufferedReader(
-                 new InputStreamReader(adapterProcess.getErrorStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-              printToConsole("[adapter] " + line + "\n");
-            }
-          } catch (IOException e) {
-            // Expected when process exits
-          }
-        }, "HL-Adapter-Stderr");
-        stderrReader.setDaemon(true);
-        stderrReader.start();
 
         try {
           Thread.sleep(500);
@@ -168,6 +157,9 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
           // On macOS arm64, ensure HL has the get-task-allow entitlement
           // so the debugger can attach via task_for_pid
           ensureDebugEntitlement(hlPath);
+
+          // Kill any stale HL process that may be holding the debug port
+          killStaleProcessOnPort(port);
 
           LOG.info("[HL Debug] Launch params: hl=" + hlPath + " program=" + progPath +
                    " port=" + port + " cwd=" + effectiveCwd + " classPaths=" + srcPaths);
@@ -228,17 +220,21 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         }
 
         // Flush pending breakpoints before configurationDone
+        LOG.info("[HL Debug] Flushing pending breakpoints: " + breakpointsByFile.keySet().size() + " files");
         for (String filePath : breakpointsByFile.keySet()) {
           sendBreakpointsForFile(filePath);
         }
 
         // Send configurationDone request
+        LOG.info("[HL Debug] Sending configurationDone");
         DAPRequest cfgDoneReq = new DAPRequest("configurationDone");
-        dapClient.sendRequest(cfgDoneReq).get(5, TimeUnit.SECONDS);
+        DAPResponse cfgResp = dapClient.sendRequest(cfgDoneReq).get(5, TimeUnit.SECONDS);
+        LOG.info("[HL Debug] configurationDone response: success=" + cfgResp.isSuccess());
 
         sessionConnected = true;
 
         // Resend any breakpoints registered during the configurationDone wait
+        LOG.info("[HL Debug] Re-flushing breakpoints post-configDone: " + breakpointsByFile.keySet().size() + " files");
         for (String filePath : breakpointsByFile.keySet()) {
           sendBreakpointsForFile(filePath);
         }
@@ -277,9 +273,12 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   }
 
   private void handleEvent(DAPEvent event) {
+    LOG.info("[HL Debug] Event received: " + event.getEvent());
     switch (event.getEvent()) {
       case "stopped":
         int threadId = event.getBodyInt("threadId", -1);
+        String reason = event.getBodyString("reason", "unknown");
+        LOG.info("[HL Debug] STOPPED event: threadId=" + threadId + " reason=" + reason);
         currentThreadId = threadId;
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           HLSuspendContext context = new HLSuspendContext(this, threadId);
@@ -417,7 +416,16 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     if (dapClient != null) {
       dapClient.stop();
     }
+    // Kill all child processes (HL) before killing the adapter itself
     if (adapterProcess != null) {
+      try {
+        adapterProcess.descendants().forEach(ph -> {
+          LOG.info("[HL Debug] Killing child process: pid=" + ph.pid());
+          ph.destroyForcibly();
+        });
+      } catch (Exception e) {
+        LOG.debug("Error killing adapter children", e);
+      }
       adapterProcess.destroyForcibly();
     }
     if (adapterProcessHandler != null) {
@@ -425,6 +433,12 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     }
     if (executionResult != null && executionResult.getProcessHandler() != null) {
       executionResult.getProcessHandler().destroyProcess();
+    }
+    // Final safety: kill anything still holding the debug port
+    try {
+      killStaleProcessOnPort(config.getDebugPort());
+    } catch (Exception e) {
+      LOG.debug("Port cleanup on stop failed", e);
     }
   }
 
@@ -557,6 +571,9 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     XSourcePosition pos = bp.getSourcePosition();
     if (pos == null) return;
     String filePath = pos.getFile().getPath();
+    LOG.info("[HL Debug] registerBreakpoint: " + filePath + ":" + (pos.getLine() + 1) +
+             " sessionConnected=" + sessionConnected +
+             " dapAlive=" + (dapClient != null && dapClient.isRunning()));
     breakpointsByFile.computeIfAbsent(filePath, k -> new CopyOnWriteArrayList<>()).add(bp);
     if (sessionConnected && dapClient != null && dapClient.isRunning()) {
       ApplicationManager.getApplication().executeOnPooledThread(() -> sendBreakpointsForFile(filePath));
@@ -579,6 +596,7 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
   private void sendBreakpointsForFile(String filePath) {
     try {
       List<XLineBreakpoint<?>> bps = breakpointsByFile.getOrDefault(filePath, Collections.emptyList());
+      LOG.info("[HL Debug] sendBreakpointsForFile: " + filePath + " count=" + bps.size());
 
       DAPRequest req = new DAPRequest("setBreakpoints");
       Map<String, Object> source = new LinkedHashMap<>();
@@ -605,18 +623,25 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
       }
       req.setArgument("breakpoints", breakpointEntries);
 
+      LOG.info("[HL Debug] Sending setBreakpoints for " + filePath + " with " + breakpointEntries.size() + " breakpoints: " + breakpointEntries);
       DAPResponse resp = dapClient.sendRequest(req).get(5, TimeUnit.SECONDS);
+      LOG.info("[HL Debug] setBreakpoints response: success=" + resp.isSuccess() + " message=" + resp.getMessage());
       if (resp.isSuccess()) {
         List<Map<String, Object>> results = resp.getBodyList("breakpoints");
+        LOG.info("[HL Debug] setBreakpoints results: " + results);
         for (int i = 0; i < results.size() && i < requestedBps.size(); i++) {
           Map<String, Object> result = results.get(i);
           if (Boolean.TRUE.equals(result.get("verified"))) {
+            LOG.info("[HL Debug] Breakpoint verified: line=" + result.get("line"));
             getSession().updateBreakpointPresentation(requestedBps.get(i), null, null);
           } else {
             String message = result.get("message") instanceof String s ? s : "Unverified";
+            LOG.info("[HL Debug] Breakpoint NOT verified: " + message);
             getSession().updateBreakpointPresentation(requestedBps.get(i), AllIcons.Debugger.Db_invalid_breakpoint, message);
           }
         }
+      } else {
+        LOG.warn("[HL Debug] setBreakpoints FAILED: " + resp.getMessage());
       }
     } catch (Exception e) {
       LOG.error("Failed to send breakpoints for file: " + filePath, e);
@@ -699,6 +724,41 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
     @Override
     public OutputStream getProcessInput() {
       return process.getOutputStream();
+    }
+  }
+
+  /**
+   * Checks if the given port is occupied and kills the process holding it.
+   * This prevents "hl exit code 4" errors when a previous debug session
+   * left an orphan HL process.
+   */
+  private static void killStaleProcessOnPort(int port) {
+    if (port <= 0) return;
+    try {
+      ProcessBuilder pb = new ProcessBuilder("lsof", "-ti", ":" + port);
+      pb.redirectErrorStream(true);
+      Process proc = pb.start();
+      String output = new String(proc.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+      proc.waitFor(3, TimeUnit.SECONDS);
+
+      if (!output.isEmpty()) {
+        for (String pidStr : output.split("\\n")) {
+          pidStr = pidStr.trim();
+          if (!pidStr.isEmpty()) {
+            try {
+              long pid = Long.parseLong(pidStr);
+              LOG.info("[HL Debug] Killing stale process on port " + port + ": pid=" + pid);
+              ProcessHandle.of(pid).ifPresent(ProcessHandle::destroyForcibly);
+            } catch (NumberFormatException e) {
+              // ignore
+            }
+          }
+        }
+        // Give the OS a moment to release the port
+        Thread.sleep(500);
+      }
+    } catch (Exception e) {
+      LOG.debug("Port cleanup failed for port " + port, e);
     }
   }
 
