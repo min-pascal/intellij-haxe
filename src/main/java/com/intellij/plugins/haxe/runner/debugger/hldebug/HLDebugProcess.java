@@ -280,6 +280,12 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
         String reason = event.getBodyString("reason", "unknown");
         LOG.info("[HL Debug] STOPPED event: threadId=" + threadId + " reason=" + reason);
         currentThreadId = threadId;
+        // Clean up temporary run-to-cursor breakpoint
+        String cleanupFile = runToCursorCleanupFile;
+        if (cleanupFile != null) {
+          runToCursorCleanupFile = null;
+          ApplicationManager.getApplication().executeOnPooledThread(() -> sendBreakpointsForFile(cleanupFile));
+        }
         ApplicationManager.getApplication().executeOnPooledThread(() -> {
           HLSuspendContext context = new HLSuspendContext(this, threadId);
           ApplicationManager.getApplication().invokeLater(() -> {
@@ -323,6 +329,7 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
 
   @Override
   public void resume(@Nullable XSuspendContext context) {
+    LOG.info("[HL Debug] resume() called, context=" + (context != null ? context.getClass().getSimpleName() : "null"));
     if (dapClient == null || !dapClient.isRunning()) return;
     try {
       boolean singleThread = false;
@@ -398,6 +405,69 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
       ApplicationManager.getApplication().invokeLater(() -> getSession().stop());
     }
   }
+
+  @Override
+  public void runToPosition(@NotNull XSourcePosition position) {
+    LOG.info("[HL Debug] runToPosition(1-arg) called: " + position.getFile().getPath() + ":" + (position.getLine() + 1));
+    doRunToPosition(position);
+  }
+
+  @Override
+  public void runToPosition(@NotNull XSourcePosition position, @Nullable XSuspendContext context) {
+    LOG.info("[HL Debug] runToPosition(2-arg) called: " + position.getFile().getPath() + ":" + (position.getLine() + 1) +
+             " context=" + (context != null ? context.getClass().getSimpleName() : "null"));
+    doRunToPosition(position);
+  }
+
+  private void doRunToPosition(@NotNull XSourcePosition position) {
+    if (dapClient == null || !dapClient.isRunning()) {
+      LOG.warn("[HL Debug] runToPosition: dapClient not available");
+      return;
+    }
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      try {
+        // Set a temporary breakpoint at the target position, then continue.
+        // We install ONLY the target breakpoint (removing existing ones in this file)
+        // to prevent the DAP adapter from re-hitting the current-line breakpoint.
+        // When the debuggee stops, the original breakpoints are restored.
+        String filePath = position.getFile().getPath();
+        int targetLine = position.getLine() + 1; // DAP is 1-based
+
+        LOG.info("[HL Debug] doRunToPosition: setting temp breakpoint at " + filePath + ":" + targetLine);
+
+        DAPRequest req = new DAPRequest("setBreakpoints");
+        Map<String, Object> source = new LinkedHashMap<>();
+        source.put("path", filePath);
+        req.setArgument("source", source);
+
+        // Only include the target line — exclude existing breakpoints in this file
+        // to avoid the DAP adapter re-installing a BRK at the current position,
+        // which would cause the continue to immediately re-hit it.
+        List<Map<String, Object>> breakpointEntries = new ArrayList<>();
+        Map<String, Object> targetEntry = new LinkedHashMap<>();
+        targetEntry.put("line", targetLine);
+        breakpointEntries.add(targetEntry);
+        req.setArgument("breakpoints", breakpointEntries);
+
+        DAPResponse bpResp = dapClient.sendRequest(req).get(5, TimeUnit.SECONDS);
+        LOG.info("[HL Debug] doRunToPosition: setBreakpoints response: success=" + bpResp.isSuccess());
+
+        // Continue execution
+        DAPRequest continueReq = new DAPRequest("continue");
+        continueReq.setArgument("threadId", currentThreadId);
+        DAPResponse contResp = dapClient.sendRequest(continueReq).get(5, TimeUnit.SECONDS);
+        LOG.info("[HL Debug] doRunToPosition: continue response: success=" + contResp.isSuccess());
+
+        // When the stopped event fires, the cleanup restores original breakpoints.
+        runToCursorCleanupFile = filePath;
+      } catch (Exception e) {
+        LOG.error("Failed runToPosition", e);
+      }
+    });
+  }
+
+  // Track file needing run-to-cursor cleanup (temporary breakpoint removal)
+  private volatile String runToCursorCleanupFile = null;
 
   // --- Stop ---
 
