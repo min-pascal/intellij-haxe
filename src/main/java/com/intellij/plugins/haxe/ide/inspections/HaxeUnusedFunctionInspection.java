@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.codeInspection.*;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -52,6 +53,7 @@ public class HaxeUnusedFunctionInspection extends LocalInspectionTool {
 
             @Override
             public void visitLocalFunctionDeclaration(@NotNull HaxeLocalFunctionDeclaration functionDeclaration) {
+                if (HxslUtil.isInsideHxslBlock(functionDeclaration)) return;
                 SearchScope searchScope = HaxeExpressionEvaluatorSearchUtil.getSmallestPossibleSearchScope(functionDeclaration, null);
                 Collection<PsiReference> references = ReferencesSearch.search(functionDeclaration, searchScope, false).findAll();
                 if (references.isEmpty()) {

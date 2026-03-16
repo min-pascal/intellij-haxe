@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.codeInsight.intention.CommonIntentionAction;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.AnnotationHolder;
@@ -43,7 +44,7 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if(!element.isValid()) return;
-
+    if (HxslUtil.isInsideHxslBlock(element)) return;
     if (element instanceof HaxeStringLiteralExpression stringLiteral) {
       check(stringLiteral, holder);
     }

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.codeInspection.*;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
@@ -51,6 +52,7 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
 
             @Override
             public void visitMethodDeclaration(@NotNull HaxeMethodDeclaration methodDeclaration) {
+                if (HxslUtil.isInsideHxslBlock(methodDeclaration)) return;
                 //TODO
                 if (methodDeclaration.isPublic()) return;
                 if (methodDeclaration.isOverride()) return;

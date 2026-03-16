@@ -366,6 +366,9 @@ public class HaxeCompiler implements FileProcessingCompiler {
   }
 
     private static boolean isDebug(Module module, ModuleBasedConfiguration configuration) {
+        if (configuration == null) {
+          return false;
+        }
         String name = RunnerAndConfigurationSettingsImpl.getUniqueIdFor(configuration);
         return ExecutionManagerImpl.getInstance(module.getProject()).isStarting(name, DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
     }

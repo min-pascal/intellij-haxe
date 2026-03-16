@@ -1,5 +1,8 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslTypeChecker;
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
+
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -25,7 +28,12 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatibl
 public class HaxeAssignExpressionAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if(!element.isValid()) return;
-
+    if (HxslUtil.isInsideHxslBlock(element)) {
+        if (element instanceof HaxeAssignExpression assignExpression) {
+            HxslTypeChecker.checkAssignment(assignExpression, holder);
+        }
+        return;
+    }
     if (element instanceof HaxeAssignExpression assignExpression) {
       check(assignExpression, holder);
     }

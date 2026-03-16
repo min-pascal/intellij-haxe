@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.inspections;
 import com.intellij.codeInspection.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceFieldIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -80,6 +81,7 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
     new HaxeAnnotatingVisitor() {
       @Override
       protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
+        if (HxslUtil.isInsideHxslBlock(reference)) return;
         PsiElement nameIdentifier = reference.getReferenceNameElement();
         if (nameIdentifier == null) return;
         if (isPartOfImportStatement(reference)) {

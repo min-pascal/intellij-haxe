@@ -1,5 +1,8 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslTypeChecker;
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
+
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -24,6 +27,13 @@ public class HaxeCallExpressionAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if(!element.isValid()) return;
+    if (HxslUtil.isInsideHxslBlock(element)) {
+      if (element instanceof HaxeCallExpression && !HxslTypeChecker.isValidHxslExpression(element)) {
+        // Fall through to normal validation for invalid HXSL call expressions
+      } else {
+        return;
+      }
+    }
     if (element instanceof HaxeCallExpression callExpression) {
       if (callExpression.getExpression() instanceof HaxeReference reference) {
         PsiElement resolved = reference.resolve();

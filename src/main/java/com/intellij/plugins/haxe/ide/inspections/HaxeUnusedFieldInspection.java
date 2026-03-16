@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.codeInspection.*;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
@@ -54,6 +55,7 @@ public class HaxeUnusedFieldInspection extends LocalInspectionTool {
 
             @Override
             public void visitFieldDeclaration(@NotNull HaxeFieldDeclaration fieldDeclaration) {
+                if (HxslUtil.isInsideHxslBlock(fieldDeclaration)) return;
                 //Skipping  fields that are public or have  keep metadata
                 if (fieldDeclaration.isPublic()) return;
                 if (fieldDeclaration.isOverride()) return;

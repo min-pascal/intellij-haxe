@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -34,6 +35,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
         if(!element.isValid()) return;
+        if (HxslUtil.isInsideHxslBlock(element)) return;
 
         if (element instanceof HaxeReturnStatement returnStatement) {
             checkReturnStatement(returnStatement, holder);
@@ -218,14 +220,12 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                     }else {
                         // check if we got cases with capture variables that cover remaining cases.
                         List<HaxeSwitchCaseExpr> switchCaseExprList = haxeSwitchCase.getSwitchCaseExprList();
-                        if(!switchCaseExprList.isEmpty()) {
-                            HaxeSwitchCaseExpr first = switchCaseExprList.getFirst();
-                            PsiElement firstChild = first.getFirstChild();
-                            if (firstChild instanceof HaxeEnumExtractedValue) {
-                                hasDefault = true;
-                            } else if (firstChild instanceof HaxeSwitchCaseCaptureVar) {
-                                hasDefault = true;
-                            }
+                        HaxeSwitchCaseExpr first = switchCaseExprList.getFirst();
+                        PsiElement firstChild = first.getFirstChild();
+                        if (firstChild instanceof HaxeEnumExtractedValue) {
+                            hasDefault = true;
+                        }else if (firstChild instanceof HaxeSwitchCaseCaptureVar) {
+                            hasDefault = true;
                         }
                     }
                     HaxeSwitchCaseBlock switchCaseBlock = haxeSwitchCase.getSwitchCaseBlock();

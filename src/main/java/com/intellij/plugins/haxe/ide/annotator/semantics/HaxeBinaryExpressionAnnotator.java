@@ -1,5 +1,8 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslTypeChecker;
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
+
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -11,12 +14,18 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
-
 public class HaxeBinaryExpressionAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if(!element.isValid()) return;
+    if (HxslUtil.isInsideHxslBlock(element)) {
+      if (element instanceof HaxeBinaryExpression && !(element instanceof HaxeAssignExpression)) {
+        if (!HxslTypeChecker.isValidHxslExpression(element)) {
+          check((HaxeBinaryExpression) element, holder);
+        }
+      }
+      return;
+    }
 
     if (element instanceof HaxeAssignExpression) {
       // HaxeAssignExpression -> assign is handle by localVarAnnotator etc.
@@ -52,13 +61,13 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
       if (result.isUnknown()) {
 
 
-        PsiElement leftChild = children[0];
+        PsiElement LeftChild = children[0];
         PsiElement rightChild = children[2];
 
-        HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(leftChild);
+        HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(LeftChild);
         HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rightChild);
 
-        ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(leftChild, binaryExpression, lhsResolver);
+        ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(LeftChild, binaryExpression, lhsResolver);
         ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
 
 
@@ -69,8 +78,8 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
         if (lhsType.isUnknown() || rhsType.isUnknown() || containsMacroExpression) {
           return;
         }
-        // ignoring enums as they are often "OR-ed" (|) in switch expressions (and EnumValue.match)
-        if (isInsidePatternMatcher(binaryExpression) && isAllPipedEnumValues(binaryExpression)) {
+        // ignoring enums as they are often  "OR-ed" (|) in switch expressions (and EnumValue.match)
+        if (lhsType.isEnum() && rhsType.isEnum()) {
           return;
         }
 
@@ -92,25 +101,5 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
         }
       }
     }
-  }
-
-  private static boolean isAllPipedEnumValues(HaxeExpression expression) {
-    if (expression instanceof HaxeBinaryExpression binaryExpression) {
-      HaxeExpression leftExpression = binaryExpression.getLeftExpression();
-      HaxeExpression rightExpression = binaryExpression.getRightExpression();
-      return binaryExpression.getOperator().textMatches("|")
-              && isAllPipedEnumValues(leftExpression)
-              && isAllPipedEnumValues(rightExpression);
-
-    } else if (expression instanceof HaxeCallExpression callExpression) {
-      if(callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression ) {
-        return referenceExpression.resolve() instanceof HaxeEnumValueDeclaration;
-      }
-
-    } else if (expression instanceof HaxeReferenceExpression referenceExpression) {
-      HaxeExpressionEvaluatorContext evaluate = HaxeExpressionEvaluator.evaluate(referenceExpression);
-      return evaluate.result.isEnumValueType();
-    }
-    return false;
   }
 }

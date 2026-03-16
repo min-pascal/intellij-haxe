@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
+import com.intellij.plugins.haxe.frameworks.hxsl.HxslUtil;
 import com.intellij.codeInspection.*;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
@@ -50,6 +51,7 @@ public class HaxeUnusedLocalVarInspection extends LocalInspectionTool {
 
             @Override
             public void visitLocalVarDeclaration(@NotNull HaxeLocalVarDeclaration varDeclaration) {
+                if (HxslUtil.isInsideHxslBlock(varDeclaration)) return;
                 SearchScope searchScope = HaxeExpressionEvaluatorSearchUtil.getSmallestPossibleSearchScope(varDeclaration, null);
                 Collection<PsiReference> references = ReferencesSearch.search(varDeclaration, searchScope, false).findAll();
                 if (references.isEmpty()) {

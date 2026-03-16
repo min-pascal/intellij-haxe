@@ -289,6 +289,9 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMacroCompletionContributor"/>
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.frameworks.hxsl.HxslCompletionContributor"/>
+    <psi.referenceContributor language="Haxe"
+        implementation="com.intellij.plugins.haxe.frameworks.hxsl.HxslBorrowReferenceContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
@@ -352,6 +355,7 @@
 
     <annotator language="Haxe" id="fastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeFastColorAnnotator" order="first"/>
     <annotator language="Haxe" id="slowColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeSlowColorAnnotator" order="after fastColor"/>
+    <annotator language="Haxe" id="hxslColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HxslColorAnnotator" order="after slowColor"/>
     <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
 
 
@@ -533,6 +537,9 @@
                              order="first, before kotlin, before java"/>
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibProjectStartActivity"/>
+
+    <additionalLibraryRootsProvider
+        implementation="com.intellij.plugins.haxe.frameworks.hxsl.HxslStubLibraryProvider"/>
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
 
