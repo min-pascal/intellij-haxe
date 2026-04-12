@@ -1,5 +1,23 @@
 import java.io.ByteArrayOutputStream
 
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+}
+
+repositories {
+    mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
+}
+
+dependencies {
+    intellijPlatform {
+        intellijIdea(providers.gradleProperty("platformVersion"))
+    }
+}
+
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
@@ -13,7 +31,13 @@ val generateHxcppDebugger = properties("generateHxcppDebugger").getOrElse("false
 
 val hxcppGeneratedFolder = if (generateHxcppDebugger) "src/gen/src" else "src/fallback/java"
 
-sourceSets["main"].java.srcDirs(hxcppGeneratedFolder)
+sourceSets {
+    main {
+        java {
+            srcDir(hxcppGeneratedFolder)
+        }
+    }
+}
 
 //// helping intellij detecting source directories
 idea.module {
@@ -23,16 +47,17 @@ idea.module {
 }
 
 tasks {
+
     compileJava {
         dependsOn("generateDebuggerJavaSource")
     }
+
     clean {
         dependsOn("cleanGenerated")
     }
 }
 
-
-tasks.create<Exec>("installHxJava") {
+tasks.register<Exec>("installHxJava") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     commandLine = listOf("haxelib", "install", "hxjava", hxjavaVersion, haxeLibChangeVersion)
@@ -40,14 +65,14 @@ tasks.create<Exec>("installHxJava") {
 
 }
 
-tasks.create<Exec>("installHxcppDebugger") {
+tasks.register<Exec>("installHxcppDebugger") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     commandLine = listOf("haxelib", "git", "hxcpp-debugger", hxcppDebuggerGit, hxcppDebuggerBranch, haxeLibChangeVersion)
     if (!logger.isDebugEnabled()) standardOutput = ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
 }
 
-tasks.create<Exec>("generateDebuggerJavaSource") {
+tasks.register<Exec>("generateDebuggerJavaSource") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     dependsOn("installHxJava")
@@ -63,7 +88,7 @@ tasks.create<Exec>("generateDebuggerJavaSource") {
 }
 
 
-tasks.create<Delete>("cleanGenerated") {
+tasks.register<Delete>("cleanGenerated") {
     group = "hxcpp"
     delete.add("src/gen/")
 }

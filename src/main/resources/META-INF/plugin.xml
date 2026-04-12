@@ -25,11 +25,15 @@
 
   <vendor>Haxe Community (Original sources provided by JetBrains.)</vendor>
   <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
+
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
   <depends>com.intellij.modules.json</depends>
+  <depends>com.intellij.modules.spellchecker</depends>
+
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="glsl-support.xml">OpenGL-Plugin</depends>
+  <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
@@ -48,7 +52,7 @@
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
       <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
-      <compileServer.plugin  id="haxe" classpath="Haxe-plugin.jps-plugin.jar;Haxe-plugin.common.jar"/>
+      <compileServer.plugin  id="haxe" classpath="modules/Haxe-plugin.jps-plugin.jar;modules/Haxe-plugin.common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
@@ -384,6 +388,8 @@
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
 
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
+
+    <spellchecker.support language="Haxe" implementationClass="com.intellij.plugins.haxe.spellchecker.HaxeSpellcheckingStrategy"/>
 
 <!--
     <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="messages.HaxeBundle"
