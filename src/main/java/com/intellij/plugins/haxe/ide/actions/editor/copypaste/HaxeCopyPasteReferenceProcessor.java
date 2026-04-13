@@ -9,7 +9,6 @@ import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.plugins.haxe.model.HaxeUsingModel;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;

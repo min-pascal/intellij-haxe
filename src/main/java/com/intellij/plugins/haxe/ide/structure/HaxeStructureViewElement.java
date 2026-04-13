@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.ide.structure;
 
 import com.intellij.ide.structureView.StructureViewTreeElement;
-import com.intellij.ide.structureView.impl.java.AccessLevelProvider;
 import com.intellij.ide.util.treeView.smartTree.SortableTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.intellij.navigation.ItemPresentation;
@@ -30,7 +29,6 @@ import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +38,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeStructureViewElement implements StructureViewTreeElement, AccessLevelProvider, SortableTreeElement {
+public class HaxeStructureViewElement implements StructureViewTreeElement, SortableTreeElement {
   private final PsiElement myElement;
 
   public HaxeStructureViewElement(final PsiElement element) {
@@ -103,22 +101,7 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
     return result.toArray(new TreeElement[0]);
   }
 
-  @Override
-  public int getAccessLevel() {
-    HaxeNamedComponent namedComponent = null;
-    if (myElement instanceof HaxeNamedComponent) {
-      namedComponent = (HaxeNamedComponent)myElement;
-    }
-    else if (myElement.getParent() instanceof HaxeNamedComponent) {
-      namedComponent = (HaxeNamedComponent)myElement.getParent();
-    }
-    return namedComponent == null || !namedComponent.isPublic() ? PsiUtil.ACCESS_LEVEL_PROTECTED : PsiUtil.ACCESS_LEVEL_PUBLIC;
-  }
 
-  @Override
-  public int getSubLevel() {
-    return 0;
-  }
 
   @NotNull
   @Override

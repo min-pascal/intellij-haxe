@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.model.evaluator;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;

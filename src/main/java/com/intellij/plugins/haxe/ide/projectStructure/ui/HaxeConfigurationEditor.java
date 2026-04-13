@@ -46,6 +46,7 @@ import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImpo
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
 import com.intellij.ui.components.JBRadioButton;
@@ -122,33 +123,13 @@ public class HaxeConfigurationEditor {
   private void addActionListeners() {
     myMainClassFieldWithButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        ClassFilter filter = new ClassFilter() {
-          @Override
-          public boolean isAccepted(PsiClass aClass) {
-            return aClass instanceof HaxeClass;
-          }
-        };
-
         Project project = myModule.getProject();
 
-        String mainClass = HaxeModuleSettings.getInstance(myModule).getMainClass();
-        HaxeClass haxeClass = null;
-        if (!mainClass.isEmpty()) {
-          for (HaxeComponent component : HaxeComponentIndex.getItemsByName(mainClass, project, myModule.getModuleScope())) {
-            if (component instanceof HaxeClass) {
-              haxeClass = (HaxeClass)component;
-            }
-          }
-        }
-
-        TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, null);
-        dialog.showDialog();
-
-        PsiClass selected = dialog.getSelected();
-
         PsiFile selectedFile = null;
-        if (selected != null) {
-          selectedFile = selected.getContainingFile();
+        try {
+          selectedFile = chooseMainClass(project);
+        } catch (NoClassDefFoundError ex) {
+          // Java plugin not available — TreeHaxeClassChooserDialog requires PsiClass/ClassFilter
         }
 
         if (selectedFile != null) {
@@ -251,6 +232,29 @@ public class HaxeConfigurationEditor {
         updateMacroses();
       }
     });
+  }
+
+  /**
+   * Opens the class chooser dialog. This method may throw NoClassDefFoundError if the Java plugin
+   * is not available, since TreeHaxeClassChooserDialog depends on PsiClass/ClassFilter.
+   */
+  private PsiFile chooseMainClass(Project project) {
+    ClassFilter filter = new ClassFilter() {
+      @Override
+      public boolean isAccepted(PsiClass aClass) {
+        return aClass instanceof HaxeClass;
+      }
+    };
+
+    TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(
+      HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, null);
+    dialog.showDialog();
+
+    Object selected = dialog.getSelected();
+    if (selected instanceof PsiElement psiElement) {
+      return psiElement.getContainingFile();
+    }
+    return null;
   }
 
   private void updateComponents() {

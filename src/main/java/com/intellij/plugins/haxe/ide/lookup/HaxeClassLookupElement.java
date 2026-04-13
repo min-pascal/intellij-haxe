@@ -10,7 +10,6 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.psi.PsiClass;
 import icons.HaxeIcons;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;

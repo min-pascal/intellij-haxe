@@ -15,7 +15,6 @@ import com.intellij.plugins.haxe.model.evaluator.assign.HaxeOverrideOrImplementE
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.HaxeMacroUtil;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;

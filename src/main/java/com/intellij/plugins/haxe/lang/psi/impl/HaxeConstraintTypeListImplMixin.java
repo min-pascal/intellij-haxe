@@ -7,7 +7,6 @@ import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.plugins.haxe.model.HaxeConstraintTypeListModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
