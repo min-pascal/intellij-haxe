@@ -91,8 +91,8 @@ public class ExtractSuperClassUtil {
       HaxeClass[] classes = haxeFile.getClasses();
 
       for (HaxeClass haxeClass : classes) {
-        if (haxeClass.getName().equals(superclassName)) {
-          superclass = (PsiClass)(Object)haxeClass;
+        if (haxeClass.getName().equals(superclassName) && haxeClass instanceof PsiClass psiClass) {
+          superclass = psiClass;
         }
       }
     }

@@ -121,8 +121,8 @@ public class TreeHaxeClassChooserDialog extends AbstractTreeClassChooserDialog<P
     List<PsiClass> classes = new ArrayList<PsiClass>();
 
     for (HaxeComponent component : components) {
-      if (component instanceof HaxeClass) {
-        classes.add((PsiClass)(Object)component); // TODO: Refactor TreeHaxeClassChooserDialog to remove PsiClass dependency
+      if (component instanceof PsiClass psiClass) {
+        classes.add(psiClass);
       }
     }
 

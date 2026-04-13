@@ -107,9 +107,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     PsiElement element = elements[0];
     PsiClass aClass;
     PsiElement aMember = null;
-    if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) {
-      // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
-      aClass = (PsiClass)(Object)(AbstractHaxePsiClass)element;
+    if ((element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) && element instanceof PsiClass psiClass) {
+      aClass = psiClass;
     }
     else if (element instanceof PsiMethod) {
       aClass = ((PsiMethod)element).getContainingClass();
@@ -139,7 +138,9 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     if (extendsList.isEmpty() && implementsList.isEmpty()) {
       final AbstractHaxePsiClass containingClass = aClass;
       if (containingClass != null && containingClass != aClass) {
-      invoke(project, dataContext, (PsiClass)(Object)containingClass, aClass);
+      if (containingClass instanceof PsiClass containingPsiClass) {
+        invoke(project, dataContext, containingPsiClass, aClass);
+      }
         return;
       }
       String message = RefactoringBundle.getCannotRefactorMessage(
@@ -147,7 +148,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.MEMBERS_PULL_UP);
       return;
     }
-    mySubclass = (PsiClass)(Object)aClass;
+    if (!(aClass instanceof PsiClass)) return;
+    mySubclass = (PsiClass)aClass;
     MemberInfoStorage memberInfoStorage = new MemberInfoStorage(mySubclass, new MemberInfo.Filter<PsiMember>() {
       @Override
       public boolean includeMember(PsiMember element) {
@@ -171,8 +173,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       result = type.getReferenceExpression().resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
-        if (haxeClass != null) {
-          psiClasses.add((PsiClass)(Object)haxeClass);
+        if (haxeClass instanceof PsiClass pc) {
+          psiClasses.add(pc);
         }
       }
     }
@@ -181,13 +183,13 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       result = type.getReferenceExpression().resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
-        if (haxeClass != null) {
-          psiClasses.add((PsiClass)(Object)haxeClass);
+        if (haxeClass instanceof PsiClass pc) {
+          psiClasses.add(pc);
         }
       }
     }
 
-    final HaxePullUpDialog dialog = new HaxePullUpDialog(project, (PsiClass)(Object)aClass, psiClasses, memberInfoStorage, this);
+    final HaxePullUpDialog dialog = new HaxePullUpDialog(project, mySubclass, psiClasses, memberInfoStorage, this);
     dialog.show();
   }
 

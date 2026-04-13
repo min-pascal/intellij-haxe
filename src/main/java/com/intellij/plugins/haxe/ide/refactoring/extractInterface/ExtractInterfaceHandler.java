@@ -183,23 +183,27 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
         }
         boolean move = aClass.isInterface();
         if (move) {
-          // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
-          PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, (PsiClass)(Object)haxeInterface, selectedMembers, javaDocPolicy);
-          pullUpHelper.moveMembersToBase();
+          if (haxeInterface instanceof PsiClass psiInterface) {
+            PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, psiInterface, selectedMembers, javaDocPolicy);
+            pullUpHelper.moveMembersToBase();
+          }
         }else {
           copySignatures(haxeInterface, selectedMembers);
 
         }
-        HaxeRefactoringUtil.reformat((PsiMember)(Object)haxeInterface);
-        return (PsiClass)(Object)haxeInterface;
+        if (haxeInterface instanceof PsiMember psiMember) {
+          HaxeRefactoringUtil.reformat(psiMember);
+        }
+        return haxeInterface instanceof PsiClass psiClass ? psiClass : null;
       }
     }
     catch (Exception e) {
       throw new RuntimeException(e);
     }
     finally{
+        PsiClass afterDataClass = haxeInterface instanceof PsiClass pc ? pc : null;
         aClass.getProject().getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
-          .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createAfterData((PsiClass)(Object)haxeInterface));
+          .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, afterDataClass != null ? ExtractSuperClassUtil.createAfterData(afterDataClass) : null);
       }
     return null;
   }

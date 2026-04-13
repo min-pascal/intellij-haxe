@@ -547,8 +547,9 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
             }
 
 
-            // TODO: HaxeMethodDeclaration no longer extends PsiMember; cast through Object
-            newMember = (PsiMember)(Object)HaxeElementGenerator.createMethodDeclaration(myProject, text);
+            PsiElement generated = HaxeElementGenerator.createMethodDeclaration(myProject, text);
+            if (!(generated instanceof PsiMember generatedMember)) break;
+            newMember = generatedMember;
             PsiMember element = (PsiMember)targetClass.getRBrace().getParent().addBefore(newMember, targetClass.getRBrace());
             addMetadataAndDocs(psiElements, element, true);
             reformat(newMember);

@@ -22,6 +22,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpDialog;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
@@ -85,14 +86,17 @@ public class HaxePushDownHandler implements RefactoringActionHandler, HaxePushDo
     PsiElement element = elements[0];
     PsiClass aClass;
     PsiElement aMember = null;
-    if (element instanceof HaxeClassDeclaration) {
-      // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
-      aClass = (PsiClass)(Object)(HaxeClassDeclaration) element;
-    } else if (element instanceof HaxeMethod) {
-      aClass = (PsiClass)(Object)((HaxeMethod) element).getContainingClass();
+    if (element instanceof HaxeClassDeclaration decl && decl instanceof PsiClass psiClass) {
+      aClass = psiClass;
+    } else if (element instanceof HaxeMethod method) {
+      HaxeClass containingClass = method.getContainingClass();
+      if (!(containingClass instanceof PsiClass psiClass)) return;
+      aClass = psiClass;
       aMember = element;
-    } else if (element instanceof HaxeFieldDeclaration) {
-      aClass = (PsiClass)(Object)((HaxeFieldDeclaration)element).getContainingClass();
+    } else if (element instanceof HaxeFieldDeclaration field) {
+      HaxeClass containingClass = field.getContainingClass();
+      if (!(containingClass instanceof PsiClass psiClass)) return;
+      aClass = psiClass;
       aMember = element;
     }
     else {
