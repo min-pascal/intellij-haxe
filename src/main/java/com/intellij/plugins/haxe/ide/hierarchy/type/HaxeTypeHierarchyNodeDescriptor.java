@@ -30,7 +30,7 @@ import com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyNodeDes
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeExternClassDeclaration;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.LayeredIcon;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +45,7 @@ final public class HaxeTypeHierarchyNodeDescriptor extends HaxeHierarchyNodeDesc
 
   public HaxeTypeHierarchyNodeDescriptor(final Project project,
                                          final HierarchyNodeDescriptor parentDescriptor,
-                                         final PsiClass haxePsiClass,
+                                         final PsiElement haxePsiClass,
                                          final boolean isBase) {
     super(project, parentDescriptor, haxePsiClass, isBase);
   }

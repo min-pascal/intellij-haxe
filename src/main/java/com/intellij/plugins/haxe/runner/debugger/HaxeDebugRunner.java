@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.runner.debugger;
 
-import com.intellij.compiler.ProblemsView;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
@@ -1364,10 +1363,8 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
               StatusBarUtil.setStatusBarInfo(project, message);
               // XXX: Should we log this, too??
             }
-            // Add the output to the "Problems" pane.
-            ProblemsView.getInstance(project).addMessage(MessageCategory.INFORMATION, new String[]{message},
-                                                                 null, null, null,
-                                                                 null, UUID.randomUUID());
+            // Log the message
+            com.intellij.openapi.diagnostic.Logger.getInstance(HaxeDebugRunner.class).info(message);
           }
       });
   }

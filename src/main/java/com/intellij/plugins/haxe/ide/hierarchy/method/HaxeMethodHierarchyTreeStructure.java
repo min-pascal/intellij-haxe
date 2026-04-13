@@ -82,10 +82,10 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     final Collection<HaxeClass> subclasses = getSubclasses(theHaxeClass);
 
     final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(subclasses.size());
-    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
+    // Cast 5 fix: pass HaxeClass directly; shouldHideClass now accepts PsiElement
     for (final HaxeClass aClass : subclasses) {
       if (HierarchyBrowserManager.getInstance(myProject).getState().HIDE_CLASSES_WHERE_METHOD_NOT_IMPLEMENTED) {
-        if (shouldHideClass((PsiClass)(Object)aClass)) {
+        if (shouldHideClass(aClass)) {
           continue;
         }
       }
@@ -94,8 +94,11 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
       descriptors.add(d);
     }
 
-    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
-    final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod((PsiClass)(Object)theHaxeClass, false);
+    // Cast 6 fix: guard with instanceof instead of casting through Object
+    PsiMethod existingMethod = null;
+    if (theHaxeClass instanceof PsiClass psiClass) {
+      existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod(psiClass, false);
+    }
     if (existingMethod != null && !existingMethod.hasModifierProperty(HaxePsiModifier.FINAL)) {
       FunctionalExpressionSearch.search(existingMethod).forEach(expression -> {
         descriptors.add(new HaxeMethodHierarchyNodeDescriptor(myProject, descriptor, expression, false, HaxeMethodHierarchyTreeStructure.this));
@@ -107,15 +110,17 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
 
-  private boolean shouldHideClass(final PsiClass psiClass) {
-    if (getMethod(psiClass, false) != null || isSuperClassForBaseClass(psiClass)) {
+  private boolean shouldHideClass(final PsiElement element) {
+    if (getMethod(element, false) != null || isSuperClassForBaseClass(element)) {
       return false;
     }
 
-    if (hasBaseClassMethod(psiClass) || isAbstract(psiClass)) {
-      for (final HaxeClass subclass : getSubclasses((HaxeClass)psiClass)) {
-        if (!shouldHideClass((PsiClass)(Object)subclass)) {
-          return false;
+    if (hasBaseClassMethod(element) || (element instanceof PsiModifierListOwner owner && isAbstract(owner))) {
+      if (element instanceof HaxeClass haxeClass) {
+        for (final HaxeClass subclass : getSubclasses(haxeClass)) {
+          if (!shouldHideClass(subclass)) {
+            return false;
+          }
         }
       }
       return true;
@@ -128,16 +133,20 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     return owner.hasModifierProperty(PsiModifier.ABSTRACT);
   }
 
-  private boolean hasBaseClassMethod(final PsiClass psiClass) {
-    final PsiMethod baseClassMethod = getMethod(psiClass, true);
+  private boolean hasBaseClassMethod(final PsiElement element) {
+    final PsiMethod baseClassMethod = getMethod(element, true);
     return baseClassMethod != null && !isAbstract(baseClassMethod);
   }
 
-  private PsiMethod getMethod(final PsiClass aClass, final boolean checkBases) {
-    return HaxeHierarchyUtils.findBaseMethodInClass(getBaseMethod(), aClass, checkBases);
+  private PsiMethod getMethod(final PsiElement element, final boolean checkBases) {
+    if (element instanceof PsiClass aClass) {
+      return HaxeHierarchyUtils.findBaseMethodInClass(getBaseMethod(), aClass, checkBases);
+    }
+    return null;
   }
 
-  boolean isSuperClassForBaseClass(final PsiClass aClass) {
+  boolean isSuperClassForBaseClass(final PsiElement element) {
+    if (!(element instanceof PsiClass aClass)) return false;
     final PsiMethod baseMethod = getBaseMethod();
     if (baseMethod == null) {
       return false;

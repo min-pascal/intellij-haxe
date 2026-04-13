@@ -61,7 +61,7 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
       }
       final PsiMethod method = (PsiMethod)enclosingElement;
 
-      final ArrayList<PsiMethod> methods = new ArrayList<PsiMethod>();
+      final ArrayList<PsiElement> methods = new ArrayList<>();
 
       final PsiCodeBlock body = method.getBody();
       if (body != null) {
@@ -71,16 +71,16 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
       final PsiMethod baseMethod = (PsiMethod)((CallHierarchyNodeDescriptor)getBaseDescriptor()).getTargetElement();
       final PsiClass baseClass = baseMethod.getContainingClass();
 
-      final HashMap<PsiMethod, CallHierarchyNodeDescriptor> methodToDescriptorMap = new HashMap<PsiMethod, CallHierarchyNodeDescriptor>();
+      final HashMap<PsiElement, CallHierarchyNodeDescriptor> methodToDescriptorMap = new HashMap<>();
 
       final ArrayList<CallHierarchyNodeDescriptor> result = new ArrayList<CallHierarchyNodeDescriptor>();
 
-      for (final PsiMethod calledMethod : methods) {
+      for (final PsiElement calledMethod : methods) {
         if (timeoutHandler.checkAndCancelIfNecessary()) {
           break;
         }
 
-        if (!isInScope(baseClass, calledMethod, myScopeType)) continue;
+        if (calledMethod instanceof PsiMember calledMember && !isInScope(baseClass, calledMember, myScopeType)) continue;
 
         CallHierarchyNodeDescriptor d = methodToDescriptorMap.get(calledMethod);
         if (d == null) {
@@ -122,7 +122,7 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
     }
   }
 
-  private static void visitor(final PsiElement element, final ArrayList<PsiMethod> methods) {
+  private static void visitor(final PsiElement element, final ArrayList<PsiElement> methods) {
     final PsiElement[] children = element.getChildren();
     for (final PsiElement child : children) {
       visitor(child, methods);
@@ -133,16 +133,14 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
         final PsiReference ref = PsiTreeUtil.findChildOfType(child, HaxeReference.class);
         final PsiElement resolved = ref.resolve();
         if (null != resolved && resolved instanceof HaxeMethod) {
-          // TODO: HaxeMethod no longer extends PsiMethod; cast through Object until hierarchy support is rewritten
-          methods.add((PsiMethod)(Object)resolved);
+          methods.add(resolved);
         }
       }
       else if (child instanceof HaxeNewExpression) {
         final HaxeReference ref = (HaxeNewExpression)child.getReference();
         final PsiElement resolved = ref.resolve();
         if (null != resolved && resolved instanceof HaxeMethod) {
-          // TODO: HaxeMethod no longer extends PsiMethod; cast through Object until hierarchy support is rewritten
-          methods.add((PsiMethod)(Object)resolved);
+          methods.add(resolved);
         }
       }
     }

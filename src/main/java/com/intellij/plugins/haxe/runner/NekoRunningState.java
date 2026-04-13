@@ -26,7 +26,6 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.openapi.compiler.CompilerPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -82,11 +81,11 @@ public class NekoRunningState extends CommandLineState {
       commandLine.addParameter(customFileToLaunch);
     }
     else {
-      final VirtualFile outputDirectory = CompilerPaths.getModuleOutputDirectory(module, false);
-      final VirtualFile fileToLaunch = outputDirectory != null ? outputDirectory.findChild(settings.getOutputFileName()) : null;
-      String outputFileName = settings.getOutputFileName();
-      if (fileToLaunch != null) {
-        commandLine.addParameter(fileToLaunch.getPath());
+      final String outputFolder = settings.getOutputFolder();
+      final String outputFileName = settings.getOutputFileName();
+      if (outputFolder != null && !outputFolder.isEmpty() && outputFileName != null) {
+        String outputPath = outputFolder + "/" + outputFileName;
+        commandLine.addParameter(outputPath);
       }
       else if (outputFileName != null) {
         commandLine.addParameter(outputFileName);

@@ -21,6 +21,8 @@ import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.SearchScope;
@@ -46,12 +48,13 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
   }
 
   protected final Object[] buildChildren(final HierarchyNodeDescriptor descriptor) {
-    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
-    final PsiClass theHaxeClass = (PsiClass)(Object)((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    final HaxeClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
     if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    final PsiClass[] supers = theHaxeClass.getSupers();
+    final List<HaxeClass> supers = new ArrayList<>();
+    supers.addAll(HaxeResolveUtil.tryResolveClasses(theHaxeClass.getHaxeExtendsList()));
+    supers.addAll(HaxeResolveUtil.tryResolveClasses(theHaxeClass.getHaxeImplementsList()));
     final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>();
-    for (PsiClass aSuper : supers) {
+    for (HaxeClass aSuper : supers) {
         descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aSuper, false));
     }
     return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[0]);
