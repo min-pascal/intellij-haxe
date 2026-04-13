@@ -160,7 +160,7 @@ public class HaxeMethodAnnotator implements Annotator {
       if (resolve instanceof HaxeEnumValueDeclaration) return;
       if (resolve instanceof HaxePsiField field ) {
         if( field.isInline())return;
-        PsiClass containingClass = field.getContainingClass();
+        HaxeClass containingClass = field.getContainingClass();
         if(containingClass != null && containingClass.isEnum()){
           // make sure its not a property if in abstract enum
           if(field instanceof HaxeFieldDeclaration declaration

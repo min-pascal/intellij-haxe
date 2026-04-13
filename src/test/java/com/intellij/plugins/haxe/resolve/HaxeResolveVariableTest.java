@@ -48,7 +48,7 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     assert file != null;
     HaxeFile haxeFile = (HaxeFile)file;
     HaxeMethodDeclaration method =
-      (HaxeMethodDeclaration)haxeFile.getClasses()[0].findMethodsByName("new", false)[0];
+      (HaxeMethodDeclaration)haxeFile.getClasses()[0].findHaxeMethodByName("new", null).get(0);
 
     HaxeBlockStatement blockStatement = method.getBlockStatement();
     assert blockStatement != null;

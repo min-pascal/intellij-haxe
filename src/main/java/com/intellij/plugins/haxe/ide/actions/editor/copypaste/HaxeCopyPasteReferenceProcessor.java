@@ -136,7 +136,7 @@ public class HaxeCopyPasteReferenceProcessor extends HaxeBaseCopyPasteReferenceP
                     imported.add(data.qname);
                 }else if (classOrMemberByQName instanceof HaxeMethod haxeMethod) {
                     if(data.extensionMethod) {
-                        PsiClass containingClass = haxeMethod.getContainingClass();
+                        HaxeClass containingClass = haxeMethod.getContainingClass();
                         if(containingClass != null) {
                             String extensionMethodClass = containingClass.getQualifiedName();
                             HaxeAddImportHelper.addUsing(extensionMethodClass, data.containingFile);

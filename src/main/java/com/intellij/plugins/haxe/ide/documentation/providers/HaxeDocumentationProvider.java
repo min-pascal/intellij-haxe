@@ -392,8 +392,11 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     builder.appendRaw(highlighting);
   }
 
-  private static void appendClassOrModuleReference(HtmlBuilder builder, PsiMember methodDeclaration) {
-    PsiClass containingClass = methodDeclaration.getContainingClass();
+  private static void appendClassOrModuleReference(HtmlBuilder builder, HaxeNamedComponent member) {
+    HaxeClass containingClass = null;
+    if (member instanceof HaxeMethodPsiMixin m) containingClass = m.getContainingClass();
+    else if (member instanceof HaxePsiField f) containingClass = f.getContainingClass();
+    else containingClass = PsiTreeUtil.getParentOfType(member, HaxeClass.class);
     if (containingClass != null) {
       StringBuilder stringBuilder = new StringBuilder();
       String qualifiedName = containingClass.getQualifiedName();
@@ -403,7 +406,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       builder.appendRaw(stringBuilder.toString()).br().br();
     }
     else {
-      PsiFile containingFile = methodDeclaration.getContainingFile();
+      PsiFile containingFile = member.getContainingFile();
       //TODO make link to module
     }
   }

@@ -21,7 +21,7 @@ public class HaxeExpressionEvaluatorSearchUtil {
 //            if (scopePsi != null) return new RangeLocalSearchScope(element, scopePsi);
         }
         if (parent instanceof HaxeFieldDeclaration fieldDeclaration) {
-            PsiClass scopePsi = fieldDeclaration.getContainingClass();
+            HaxeClass scopePsi = fieldDeclaration.getContainingClass();
             if (scopePsi != null) return createScope(scopePsi);
 //            if (containingClass != null) return scope(containingClass.getScope());
         }

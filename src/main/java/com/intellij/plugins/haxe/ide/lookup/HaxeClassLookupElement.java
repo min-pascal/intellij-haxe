@@ -35,11 +35,10 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
   private Icon icon = null;
 
   @NotNull
-  public static Collection<HaxeClassLookupElement> convert(PsiClass[] classes) {
+  public static Collection<HaxeClassLookupElement> convert(HaxeClass[] classes) {
     final List<HaxeClassLookupElement> result = new ArrayList<>();
-    for (PsiClass aClass : classes) {
-      if (aClass instanceof HaxeClass haxeClass)
-        result.add(new HaxeClassLookupElement(haxeClass, haxeClass.getComponentName()));
+    for (HaxeClass haxeClass : classes) {
+      result.add(new HaxeClassLookupElement(haxeClass, haxeClass.getComponentName()));
     }
 
     return result;
@@ -89,7 +88,7 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
 
   @Override
   public void handleInsert(InsertionContext context) {
-    JavaCompletionUtil.insertClassReference(haxeClass, context.getFile(), context.getStartOffset());
+    // Note: JavaCompletionUtil.insertClassReference not used as HaxeClass is not PsiClass
   }
 
 

@@ -27,7 +27,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
@@ -42,7 +41,7 @@ import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.CORE_TYPE;
 @CustomLog
 abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
-  public HaxeMemberModel(PsiMember basePsi) {
+  public HaxeMemberModel(PsiElement basePsi) {
     super(basePsi);
   }
 
@@ -50,8 +49,8 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return ObjectUtils.tryCast(HaxeBaseMemberModel.fromPsi(psiElement), HaxeMemberModel.class);
   }
 
-  public PsiMember getMemberPsi() {
-    return (PsiMember)basePsi;
+  public PsiElement getMemberPsi() {
+    return basePsi;
   }
 
   public boolean isPublic() {
@@ -143,10 +142,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return module.getModel();
   }
 
-  private static HaxeClassModel _getDeclaringClass(PsiMember member) {
-    PsiClass containingClass = member.getContainingClass();
-    if (containingClass instanceof HaxeClass haxeClass) {
-      return haxeClass.getModel();
+  private static HaxeClassModel _getDeclaringClass(PsiElement element) {
+    HaxeClass containingClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    if (containingClass != null) {
+      return containingClass.getModel();
     }else {
       return null;
     }

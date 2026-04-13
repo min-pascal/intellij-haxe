@@ -48,7 +48,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class HaxeFile extends PsiFileBase
-  implements HaxeModifierListOwner, PsiClassOwner {
+  implements HaxeModifierListOwner {
 
   private HaxeFileModel haxeFileModel;
 
@@ -100,8 +100,7 @@ public class HaxeFile extends PsiFileBase
   }
 
   @NotNull
-  @Override
-  public PsiClass[] getClasses() {
+  public HaxeClass[] getClasses() {
     return HaxeHierarchyUtils.getClassArray(this);
   }
 
@@ -115,13 +114,11 @@ public class HaxeFile extends PsiFileBase
     return node != null ? (PsiPackageStatement)node.getPsi() : null;
   }
 
-  @Override
   public String getPackageName() {
     PsiPackageStatement statement = getPackageStatement();
     return statement == null ? "" : statement.getPackageName();
   }
 
-  @Override
   public void setPackageName(String packageName) throws IncorrectOperationException {
     // TODO: verify
     HaxePackageStatement packageStatementFromPath = HaxeElementGenerator.createPackageStatementFromPath(getProject(), packageName);

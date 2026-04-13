@@ -183,14 +183,15 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
         }
         boolean move = aClass.isInterface();
         if (move) {
-          PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, haxeInterface, selectedMembers, javaDocPolicy);
+          // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
+          PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, (PsiClass)(Object)haxeInterface, selectedMembers, javaDocPolicy);
           pullUpHelper.moveMembersToBase();
         }else {
           copySignatures(haxeInterface, selectedMembers);
 
         }
-        HaxeRefactoringUtil.reformat(haxeInterface);
-        return haxeInterface;
+        HaxeRefactoringUtil.reformat((PsiMember)(Object)haxeInterface);
+        return (PsiClass)(Object)haxeInterface;
       }
     }
     catch (Exception e) {
@@ -198,7 +199,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
     }
     finally{
         aClass.getProject().getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
-          .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createAfterData(haxeInterface));
+          .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createAfterData((PsiClass)(Object)haxeInterface));
       }
     return null;
   }
@@ -215,7 +216,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
       }
       if (psiMember instanceof HaxeMethodDeclaration methodDeclaration) {
         HaxeMethodDeclaration workCopy = (HaxeMethodDeclaration)methodDeclaration.copy();
-        if(workCopy.getBody() != null)workCopy.getBody().delete();
+        if(workCopy.getBlockStatement() != null)workCopy.getBlockStatement().delete();
         workCopy.getMethodModifierList().forEach(PsiElement::delete);
         PsiElement semi = createSemi(document.getFile().getProject());
         workCopy.add(semi);

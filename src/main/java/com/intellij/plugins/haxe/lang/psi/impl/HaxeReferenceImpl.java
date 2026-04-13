@@ -886,7 +886,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             HaxeComponentName componentName = parameter.getComponentName();
             HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(parameterList);
             HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
-            ResultHolder holder = searchReferencesForType(componentName, context, null, method == null ? null : method.getBody());
+            ResultHolder holder = searchReferencesForType(componentName, context, null, method == null ? null : method.getBlockStatement());
             if (!holder.isUnknown()) {
               return holder.getType().asResolveResult();
             }
@@ -1067,13 +1067,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     else if (element instanceof PsiPackage) {
       bindToPackage((PsiPackage)element);
     }
-    else if (element instanceof PsiClass) {
-      bindToClass((PsiClass)element);
+    else if (element instanceof HaxeClass) {
+      bindToClass((HaxeClass)element);
     }
     return this;
   }
 
-  private void bindToClass(PsiClass element) {
+  private void bindToClass(HaxeClass element) {
     String ref = getReferenceName();
     //The name was not changed. Are we moving a class to another package?
     if (element instanceof HaxeClassDeclaration && ref != null && ref.equals(element.getName())) {
@@ -1085,7 +1085,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
   }
 
-  private void handleClassMovement(PsiClass element) {
+  private void handleClassMovement(HaxeClass element) {
     String thisFqn = getQualifiedName();
     String newFqn = getFqn((HaxeClassDeclaration)element);
     //This reference is not a fully qualified name.

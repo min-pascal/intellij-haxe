@@ -4,6 +4,7 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -32,7 +33,7 @@ public class HaxeSpellcheckingStrategy extends SpellcheckingStrategy implements 
     @Override
     public @NotNull Tokenizer getTokenizer(PsiElement element) {
 
-        if (element instanceof PsiMethod psiMethod && psiMethod.isConstructor()) return EMPTY_TOKENIZER;
+        if (element instanceof HaxeMethod haxeMethod && haxeMethod.isConstructor()) return EMPTY_TOKENIZER;
 
         if (element instanceof PsiDocComment) {
             return useTextLevelSpellchecking() ? EMPTY_TOKENIZER : myDocCommentTokenizer;

@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.actions.editor.copypaste;
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor;
 import com.intellij.codeInsight.editorActions.ReferenceCopyPasteProcessor;
 import com.intellij.plugins.haxe.editor.HaxeRestoreReferencesDialog;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -233,6 +234,6 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
     }
 
     private static String getFQName(@NotNull Object element) {
-        return element instanceof PsiClass ? ((PsiClass)element).getQualifiedName() : (String)element;
+        return element instanceof HaxeClass hc ? hc.getQualifiedName() : (String)element;
     }
 }

@@ -926,7 +926,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       if (body != null) {
         List<? extends HaxeNamedComponent> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class);
         for (HaxeNamedComponent declaration : children) {
-          if (!(declaration instanceof PsiMember)) continue;
+          if (!(declaration instanceof HaxeNamedComponent)) continue;
           if (declaration instanceof HaxeFieldDeclaration varDeclaration) {
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
               out.add(varDeclaration.getModel());

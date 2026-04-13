@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
+public interface HaxeClass extends HaxeComponent, HaxeModelTarget {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   /**
@@ -171,4 +171,44 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   PsiPackage getPackage();
 
   HaxeModule getModule();
+
+  // Methods previously inherited from PsiClass, now declared directly on HaxeClass
+  boolean isEnum();
+
+  boolean isAnnotationType();
+
+  boolean isDeprecated();
+
+  boolean isPublic();
+
+  @NotNull
+  HaxePsiField[] getFields();
+
+  @Nullable
+  HaxeClass getContainingClass();
+
+  @Nullable
+  HaxeInheritList getExtendsList();
+
+  @Nullable
+  HaxeInheritList getImplementsList();
+
+  @Nullable
+  PsiIdentifier getNameIdentifier();
+
+  @Nullable
+  PsiElement getLBrace();
+
+  @Nullable
+  PsiElement getRBrace();
+
+  @Nullable
+  PsiElement getBody();
+
+  @NotNull
+  HaxeModifierList getModifierList();
+
+  boolean hasModifierProperty(@NotNull String name);
+
+  PsiElement getScope();
 }

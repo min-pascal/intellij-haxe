@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList;
@@ -86,11 +87,12 @@ public class ExtractSuperClassUtil {
     PsiClass superclass = null;
     try {
       HaxeFile haxeFile = (HaxeFile)HaxeFileTemplateUtil.createType(superclassName, "", packageName, targetDirectory, "HaxeClass", null);
-      PsiClass[] classes = haxeFile.getClasses();
+      // TODO: HaxeFile.getClasses() returns HaxeClass[] which no longer extends PsiClass[]
+      HaxeClass[] classes = haxeFile.getClasses();
 
-      for (PsiClass psiClass : classes) {
-        if (psiClass.getName().equals(superclassName)) {
-          superclass = psiClass;
+      for (HaxeClass haxeClass : classes) {
+        if (haxeClass.getName().equals(superclassName)) {
+          superclass = (PsiClass)(Object)haxeClass;
         }
       }
     }

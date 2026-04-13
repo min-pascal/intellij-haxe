@@ -67,7 +67,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
 
         HaxeFile haxeFile = (HaxeFile)file;
         HaxeMethodDeclaration functionDeclarationWithAttributes =
-          (HaxeMethodDeclaration)haxeFile.getClasses()[0].findMethodsByName("test", true)[0];
+          (HaxeMethodDeclaration)haxeFile.getClasses()[0].findHaxeMethodByName("test", null).get(0);
 
         assertNotNull(functionDeclarationWithAttributes);
 

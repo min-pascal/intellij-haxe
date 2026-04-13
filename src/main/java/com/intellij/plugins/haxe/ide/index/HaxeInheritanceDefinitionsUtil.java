@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.DefinitionsScopedSearch;
@@ -63,8 +64,14 @@ public class HaxeInheritanceDefinitionsUtil {
       .filtering(element -> element instanceof HaxeClass)
       .mapping(element -> (HaxeClass)element)
       .filtering(aClass -> !aClass.isObjectLiteralType())// ignore object literals as they do not inherit
-      .filtering(element ->
-                   Arrays.stream(element.getSuperTypes()).map(PsiClassType::resolve).anyMatch(psiClass -> psiClass == haxeClass)
+      .filtering(element -> {
+                   List<HaxeType> extendsList = element.getHaxeExtendsList();
+                   List<HaxeType> implementsList = element.getHaxeImplementsList();
+                   java.util.stream.Stream<HaxeType> allTypes = java.util.stream.Stream.concat(extendsList.stream(), implementsList.stream());
+                   return allTypes
+                     .map(t -> t.getReferenceExpression().resolveHaxeClass().getHaxeClass())
+                     .anyMatch(c -> c == haxeClass);
+                 }
       ).findAll();
   }
 

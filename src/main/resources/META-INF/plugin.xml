@@ -27,10 +27,10 @@
   <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
 
   <depends>com.intellij.modules.lang</depends>
-  <depends>com.intellij.modules.java</depends>
   <depends>com.intellij.modules.json</depends>
   <depends>com.intellij.modules.spellchecker</depends>
 
+  <depends optional="true" config-file="java-support.xml">com.intellij.modules.java</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="glsl-support.xml">OpenGL-Plugin</depends>
   <depends optional="true" config-file="haxe-grazie.xml">tanvd.grazi</depends>
@@ -51,17 +51,16 @@
   <extensions defaultExtensionNs="com.intellij">
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
-      <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
-      <compileServer.plugin  id="haxe" classpath="modules/Haxe-plugin.jps-plugin.jar;modules/Haxe-plugin.common.jar"/>
+      <!-- NOTE: compileServer.plugin moved to java-support.xml (requires com.intellij.modules.java) -->
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
+    <!-- compiler.task moved to java-support.xml (requires com.intellij.modules.java) -->
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
-    <moduleBuilder builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
+    <!-- moduleBuilder moved to java-support.xml (HaxeModuleBuilder extends JavaModuleBuilder) -->
     <moduleConfigurationEditorProvider implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <projectStructureDetector implementation="com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
@@ -444,12 +443,7 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>
 
-    <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
-    <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
-    <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
-    <hierarchy.referenceProcessor implementation="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor"/>
-
-    <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
+    <!-- hierarchy providers and haxeMethodsSearch moved to java-support.xml (requires com.intellij.modules.java) -->
 
     <consoleFilterProvider implementation="com.intellij.plugins.haxe.execution.console.HaxeConsoleFilterProvider"/>
 

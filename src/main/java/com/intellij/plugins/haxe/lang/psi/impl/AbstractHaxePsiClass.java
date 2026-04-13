@@ -37,13 +37,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.InheritanceImplUtil;
-import com.intellij.psi.impl.PsiClassImplUtil;
-import com.intellij.psi.impl.PsiImplUtil;
-import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.ChildRole;
-import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
-import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -368,7 +362,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return getGenericParam() != null;
   }
 
-  @Override
   public boolean isEnum() {
     if (getComponentType() == HaxeComponentType.ENUM) return true;
     if (isAbstractType()) {
@@ -377,37 +370,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return false;
   }
 
-  @Override
   public boolean isAnnotationType() {
     /* both: annotation & typedef in haxe are treated as typedef! */
     return (getComponentType() == HaxeComponentType.TYPEDEF);
   }
 
-  @Override
   public boolean isDeprecated() {
     /* not applicable to Haxe language */
     return false;
   }
 
-  @Override
-  @NotNull
-  public PsiClass[] getSupers() {
-    // Extends and Implements in one list
-    return PsiClassImplUtil.getSupers(this);
-  }
-
-  @Override
-  public PsiClass getSuperClass() {
-    return PsiClassImplUtil.getSuperClass(this);
-  }
-
-  @Override
-  @NotNull
-  public PsiClassType[] getSuperTypes() {
-    return PsiClassImplUtil.getSuperTypes(this);
-  }
-
-  @Override
   public PsiElement getScope() {
     String name = this.getName();
     if (null == name || "".equals(name)) {
@@ -417,125 +389,27 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return this.getContainingFile();
   }
 
-  @Override
-  public PsiClass getContainingClass() {
+  @Nullable
+  public HaxeClass getContainingClass() {
     PsiElement parent = getParent();
-    return (parent instanceof PsiClass ? (PsiClass)parent : null);
+    return (parent instanceof HaxeClass ? (HaxeClass)parent : null);
   }
 
-  @Override
-  public PsiClass[] getInterfaces() {  // Extends and Implements in one list
-    return PsiClassImplUtil.getInterfaces(this);
-  }
-
-  @Override
   @Nullable
   public HaxeInheritList getExtendsList() {
     return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
   }
 
-  @Override
   @Nullable
   public HaxeInheritList getImplementsList() {
     return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
   }
 
-  @Override
-  @NotNull
-  public PsiClassType[] getExtendsListTypes() {
-    final HaxeInheritList extendsList = this.getExtendsList();
-    if (extendsList != null) {
-      return extendsList.getReferencedExtends();
-    }else if (this instanceof  HaxeTypedefDeclaration typeDeclaration) {
-      HaxeTypeOrAnonymous typeOrAnonymous = typeDeclaration.getTypeOrAnonymous();
-      if (typeOrAnonymous != null) {
-        HaxeType type = typeOrAnonymous.getType();
-        if(type != null) {
-          HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
-          return new PsiClassType[]{getReferencedType(referenceExpression)};
-        }
-      }
-    }
-    return PsiClassType.EMPTY_ARRAY;
-  }
-
-  @Override
-  @NotNull
-  public PsiClassType[] getImplementsListTypes() {
-    final HaxeInheritList implementsList = this.getImplementsList();
-    if (implementsList != null) {
-      return implementsList.getReferencedImplements();
-    }
-    return PsiClassType.EMPTY_ARRAY;
-  }
-
-
-
-  @NotNull
-  private PsiClassType getReferencedType(HaxeReferenceExpression referenceExpression) {
-    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-    return factory.createType(referenceExpression);
-  }
-
-  @Override
-  public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
-    return InheritanceImplUtil.isInheritor(this, baseClass, checkDeep);
-  }
-
-  @Override
-  public boolean isInheritorDeep(PsiClass baseClass, @Nullable PsiClass classToByPass) {
-    return InheritanceImplUtil.isInheritorDeep(this, baseClass, classToByPass);
-  }
-
-  @Override
-  @NotNull
-  public PsiClassInitializer[] getInitializers() {
-    // XXX: This may be needed during implementation of refactoring feature
-    // Needs change in BNF to detect initializer patterns, load them as accessible constructs in a class object
-    // For now, this will be empty
-    return PsiClassInitializer.EMPTY_ARRAY;
-  }
-
-  @Override
   @NotNull
   public HaxePsiField[] getFields() {
     List<HaxeNamedComponent> haxeFields = getHaxeFieldsSelf(null);
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     return haxeFields.toArray(psiFields);
-  }
-
-
-  @Override
-  @NotNull
-  public PsiField[] getAllFields() {
-      return PsiClassImplUtil.getAllFields(this);
-  }
-
-  @Override
-  @Nullable
-  public PsiField findFieldByName(@NonNls String name, boolean checkBases) {
-    return PsiClassImplUtil.findFieldByName(this, name, checkBases);
-  }
-
-  @NotNull
-  private static PsiMethod[] getMethodsCached(HaxeClass haxeClass) {
-    return CachedValuesManager.getCachedValue(haxeClass, () -> {
-      final List<HaxeNamedComponent> alltypes = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
-      final List<HaxeNamedComponent> methods = HaxeNamedSubComponentUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
-      PsiMethod[] array = methods.toArray(PsiMethod.EMPTY_ARRAY);
-      return new CachedValueProvider.Result<>(array, haxeClass);
-    });
-  }
-  @Override
-  @NotNull
-  public PsiMethod[] getMethods() {
-    return getMethodsCached(this);
-  }
-
-  @Override
-  @NotNull
-  public PsiMethod[] getAllMethods() {
-    return PsiClassImplUtil.getAllMethods(this);
   }
 
   @NotNull
@@ -582,80 +456,27 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public List<HaxeNamedComponent>getAncestorHaxeNamedComponents(HaxeComponentType componentType, boolean unique) {
     List<HaxeClass> supers = new ArrayList<>();
-    for (PsiClass superType : this.getSupers()) {
-      if (superType instanceof HaxeClass superClass) {
-        supers.add(superClass);
-      }
+    // Walk extends and implements to find super classes
+    for (HaxeType extendsType : this.getHaxeExtendsList()) {
+      HaxeClass resolved = extendsType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (resolved != null) supers.add(resolved);
+    }
+    for (HaxeType implType : this.getHaxeImplementsList()) {
+      HaxeClass resolved = implType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (resolved != null) supers.add(resolved);
     }
 
-    HaxeClass[] supersArray = supers.toArray(HaxeClass.EMPTY_ARRAY);
     List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers);
     if(unique) allNamedComponents = HaxeNamedSubComponentUtil.uniqueNamedSubComponents(allNamedComponents);
     return HaxeNamedSubComponentUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
 
 
-  @Override
-  @NotNull
-  public PsiMethod[] getConstructors() {
-    return PsiClassImplUtil.findMethodsByName(this, HaxeTokenTypes.ONEW.toString(), false);
-  }
-
-  @Override
-  @Nullable
-  public PsiMethod findMethodBySignature(final PsiMethod psiMethod, final boolean checkBases) {
-    return PsiClassImplUtil.findMethodBySignature(this, psiMethod, checkBases);
-  }
-
-  @Override
-  @NotNull
-  public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    if ("main".equals(name)) { checkBases = false; }
-    return PsiClassImplUtil.findMethodsByName(this, name, checkBases);
-  }
-
-  @Override
-  @NotNull
-  public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
-    return PsiClassImplUtil.findMethodsBySignature(this, patternMethod, checkBases);
-  }
-
-  @Override
-  @NotNull
-  public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-    return PsiClassImplUtil.getAllWithSubstitutorsByMap(this, PsiClassImplUtil.MemberType.METHOD);
-  }
-
-  @Override
-  @NotNull
-  public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(@NonNls String name, boolean checkBases) {
-    return PsiClassImplUtil.findMethodsAndTheirSubstitutorsByName(this, name, checkBases);
-  }
-
-  @Override
-  public boolean hasTypeParameters() {
-    return PsiImplUtil.hasTypeParameters(this);
-  }
-
-  @Override
-  @Nullable
-  public PsiTypeParameterList getTypeParameterList() {
-    return new PsiTypeParameterListImpl(this.getNode());
-  }
-
-  @Override
-  @NotNull
-  public PsiTypeParameter[] getTypeParameters() {
-    return PsiImplUtil.getTypeParameters(this);
-  }
-
-  @Override
   public PsiElement getLBrace() {
     PsiElement body = getBody();
     return findChildByRoleAsPsiElementIn(body, ChildRole.LBRACE);
   }
 
-  @Override
   public PsiElement getRBrace() {
     PsiElement body = getBody();
     return findChildByRoleAsPsiElementIn(body, ChildRole.RBRACE);
@@ -730,7 +551,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return null;
   }
 
-  @Override
   public boolean isPublic() {
     return !isPrivate();
   }
@@ -764,37 +584,26 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return list;
   }
 
-  @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
     return this.getModifierList().hasModifierProperty(name);
   }
 
-  @Override
   @Nullable
-  public PsiDocComment getDocComment() {
-    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
-    return (psiComment != null) ? new HaxePsiDocComment(this, psiComment) : null;
+  public PsiComment getDocComment() {
+    return HaxeResolveUtil.findDocumentation(this);
   }
 
-  @Override
   @NotNull
   public PsiElement getNavigationElement() {
     return this;
   }
 
-  @Override
   @Nullable
   public PsiIdentifier getNameIdentifier() {
     // For a HaxeClass, the identifier is three children below.  The first is
     // the component name, then a reference, and finally the identifier.
     HaxeComponentName name = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
     return null == name ? null : name.getIdentifier();
-  }
-
-  @Override
-  @NotNull
-  public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
-    return PsiSuperMethodImplUtil.getVisibleSignatures(this);
   }
 
   @Override
@@ -812,23 +621,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return null;
   }
 
-  @Override
-  @NotNull
-  public PsiClass[] getInnerClasses() {
-    return PsiClass.EMPTY_ARRAY;
-  }
-
-  @Override
-  @NotNull
-  public PsiClass[] getAllInnerClasses() {
-    return PsiClass.EMPTY_ARRAY;
-  }
-
-  @Override
-  @Nullable
-  public PsiClass findInnerClassByName(@NonNls String name, boolean checkBases) {
-    return null;
-  }
 
 
   @NotNull

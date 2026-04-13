@@ -733,7 +733,7 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }else {
         HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
-        ResultHolder holder = searchReferencesForType(parameter.getComponentName(), context, resolver, method.getBody());
+        ResultHolder holder = searchReferencesForType(parameter.getComponentName(), context, resolver, method.getBlockStatement());
         if (holder!= null && !holder.isUnknown()) {
           return holder;
         }

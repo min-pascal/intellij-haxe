@@ -90,7 +90,7 @@ public class HaxeTypeResolver {
   @NotNull
   static private ResultHolder _getFieldOrMethodReturnType(HaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     try {
-      if (comp instanceof PsiMethod) {
+      if (comp instanceof HaxeMethod) {
         return getFunctionReturnType(comp, resolver);
       }
       else if (comp instanceof HaxeFunctionLiteral) {

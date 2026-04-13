@@ -133,14 +133,16 @@ public class HaxeCalleeMethodsTreeStructure extends HierarchyTreeStructure {
         final PsiReference ref = PsiTreeUtil.findChildOfType(child, HaxeReference.class);
         final PsiElement resolved = ref.resolve();
         if (null != resolved && resolved instanceof HaxeMethod) {
-          methods.add((HaxeMethod)resolved);
+          // TODO: HaxeMethod no longer extends PsiMethod; cast through Object until hierarchy support is rewritten
+          methods.add((PsiMethod)(Object)resolved);
         }
       }
       else if (child instanceof HaxeNewExpression) {
         final HaxeReference ref = (HaxeNewExpression)child.getReference();
         final PsiElement resolved = ref.resolve();
         if (null != resolved && resolved instanceof HaxeMethod) {
-          methods.add((HaxeMethod)resolved);
+          // TODO: HaxeMethod no longer extends PsiMethod; cast through Object until hierarchy support is rewritten
+          methods.add((PsiMethod)(Object)resolved);
         }
       }
     }

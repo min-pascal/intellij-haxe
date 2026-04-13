@@ -247,7 +247,7 @@ public class HaxeResolveUtil {
   private static boolean couldContributeTypeParameters(@Nullable PsiElement element) {
     if (null == element) return false;
     if (element instanceof HaxeAnonymousType) return false; // Is also a HaxeClass.
-    if (element instanceof HaxeMethod && ((HaxeMethod)element).hasTypeParameters()) {
+    if (element instanceof HaxeMethod && ((HaxeMethod)element).getGenericParam() != null) {
       return true;
     }
     return /* element instanceof HaxeTypedefDeclaration || */
@@ -367,11 +367,16 @@ public class HaxeResolveUtil {
       contextSpecialization = HaxeGenericResolverUtil.generateResolverFromScopeParents(contextClass).getSpecialization(contextClass);
     }
 
-    PsiClass[] superClasses = contextClass.getSupers();
-    for (PsiClass psiClass : superClasses) {
-      if (psiClass instanceof HaxeClass) {
-        HaxeClass clazz = (HaxeClass) psiClass;
-
+    List<HaxeClass> superClasses = new ArrayList<>();
+    for (HaxeType superType : contextClass.getHaxeExtendsList()) {
+      HaxeClass resolved = superType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (resolved != null) superClasses.add(resolved);
+    }
+    for (HaxeType superType : contextClass.getHaxeImplementsList()) {
+      HaxeClass resolved = superType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (resolved != null) superClasses.add(resolved);
+    }
+    for (HaxeClass clazz : superClasses) {
         HaxeResolveResult
           specializedResult = HaxeResolveResult.create(contextClass, contextSpecialization.getInnerSpecialization(contextClass));
         specializedResult.specialize(clazz);
@@ -381,10 +386,11 @@ public class HaxeResolveUtil {
         if (clazz.equals(elementClass)) {
           return superResult;
         }
-        if (clazz.isInheritor(elementClass, true)) {
-          return resolveSuperclass(elementClass, superResult.getHaxeClass(), superResult.getSpecialization());
+        // Check if elementClass is an ancestor of clazz
+        HaxeResolveResult deepResult = resolveSuperclass(elementClass, superResult.getHaxeClass(), superResult.getSpecialization());
+        if (deepResult != HaxeResolveResult.EMPTY) {
+          return deepResult;
         }
-      }
     }
     return HaxeResolveResult.EMPTY;
   }
@@ -1383,7 +1389,7 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {
-    if (element instanceof PsiMember member) {
+    if (element instanceof HaxeNamedComponent member) {
       PsiElement sibling = member.getPrevSibling();
       // workaround for members in module
       // TODO mlo:  maybe look into how tokens are organised when parsed so that meta and comments are inside the module
@@ -1391,7 +1397,7 @@ public class HaxeResolveUtil {
         sibling  = member.getParent();
       }
       // make sure we dont back trace to docs from a different member
-      while (sibling != null && !(sibling instanceof PsiMember)) {
+      while (sibling != null && !(sibling instanceof HaxeNamedComponent)) {
         if (sibling instanceof PsiComment comment && comment.getTokenType() == HaxeTokenTypeSets.DOC_COMMENT) {
           return comment;
         }

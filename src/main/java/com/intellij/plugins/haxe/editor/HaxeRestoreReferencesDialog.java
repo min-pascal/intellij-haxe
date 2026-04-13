@@ -49,7 +49,7 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
     myNamedElements = elements;
     /*
     for (Object element : elements) {
-      if (!(element instanceof PsiClass)) {
+      if (!(element instanceof HaxeClass)) {
         myContainsClassesOnly = false;
         break;
       }

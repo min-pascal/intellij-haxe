@@ -233,7 +233,7 @@ public class HaxeElementGenerator {
     return PsiTreeUtil.findChildOfType(haxeClass, HaxeConstructorDeclaration.class);
   }
 
-  private static void reformat(final PsiMember movedElement) {
+  private static void reformat(final PsiElement movedElement) {
     final TextRange range = movedElement.getTextRange();
     final PsiFile file = movedElement.getContainingFile();
     final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());

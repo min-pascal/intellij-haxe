@@ -65,8 +65,8 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
         HaxeClass parentOfType = PsiTreeUtil.getParentOfType(context, HaxeClass.class);
         if(parentOfType != null) {
             List<HaxeNamedComponent> members = parentOfType.findHaxeMemberByName(member, null);
-            if (!members.isEmpty() &&  members.getFirst()  instanceof PsiMember psiMember) {
-                PsiClass containingClass = psiMember.getContainingClass();
+            if (!members.isEmpty() &&  members.getFirst()  instanceof HaxeNamedComponent haxeComponent) {
+                HaxeClass containingClass = PsiTreeUtil.getParentOfType(haxeComponent, HaxeClass.class);
                 if(containingClass != null) {
                     replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
                     return true;
@@ -83,7 +83,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
             if(qualifiedInfo != null) {
                 String presentableText = qualifiedInfo.getPresentableText();
 
-                if (memberPsi != null && memberPsi.getNameOrBasePsi() instanceof PsiMember psiMember) {
+                if (memberPsi != null && memberPsi.getNameOrBasePsi() instanceof HaxeNamedComponent) {
                     replaceCodeWithReferenceCodeLink(code, presentableText + "." + member, literal);
                     return true;
                 }
@@ -111,8 +111,8 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
 
         if (haxeClass != null) {
             List<HaxeNamedComponent> members = haxeClass.findHaxeMemberByName(member, null);
-            if (!members.isEmpty() && members.getFirst() instanceof PsiMember psiMember) {
-                PsiClass containingClass = psiMember.getContainingClass();
+            if (!members.isEmpty() && members.getFirst() instanceof HaxeNamedComponent haxeComponent) {
+                HaxeClass containingClass = PsiTreeUtil.getParentOfType(haxeComponent, HaxeClass.class);
                 replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
                 return true;
             }

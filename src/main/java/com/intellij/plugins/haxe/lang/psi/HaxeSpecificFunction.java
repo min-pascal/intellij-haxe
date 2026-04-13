@@ -146,7 +146,7 @@ public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implem
   public HaxeFunctionReturnType getFunctionReturnType() {
     //TODO consider cache ?
     return null != functionType ? functionType.getFunctionReturnType()
-                                : (HaxeFunctionReturnType)method.getReturnType();
+                                : null;
   }
 
   @Nullable

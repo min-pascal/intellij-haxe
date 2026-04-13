@@ -20,7 +20,8 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
-import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiIdentifier;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
 //
 //                                    |||||||||||||
 //                                    vvvvvvvvvvvvv
-public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
+public interface HaxePsiField extends HaxeComponent, HaxeModelTarget {
   @Nullable
   HaxeTypeTag getTypeTag();
 
@@ -47,4 +48,18 @@ public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
   boolean isMacroName();
 
   HaxeBaseMemberModel getModel();
+
+  // Methods previously inherited from PsiField, now declared directly
+  boolean isDeprecated();
+
+  @Nullable
+  HaxeClass getContainingClass();
+
+  @Nullable
+  PsiIdentifier getNameIdentifier();
+
+  @NotNull
+  HaxeModifierList getModifierList();
+
+  boolean hasModifierProperty(@NotNull String name);
 }

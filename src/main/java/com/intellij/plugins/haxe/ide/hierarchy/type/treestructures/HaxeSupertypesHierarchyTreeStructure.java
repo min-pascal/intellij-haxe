@@ -34,6 +34,7 @@ import java.util.List;
  */
 public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
+  @SuppressWarnings("unchecked")
   public HaxeSupertypesHierarchyTreeStructure(final Project project, final PsiClass aClass) {
     super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, aClass, true));
     setBaseElement(myBaseDescriptor); // to set myRoot
@@ -45,7 +46,8 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
   }
 
   protected final Object[] buildChildren(final HierarchyNodeDescriptor descriptor) {
-    final PsiClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
+    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
+    final PsiClass theHaxeClass = (PsiClass)(Object)((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
     if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     final PsiClass[] supers = theHaxeClass.getSupers();
     final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>();

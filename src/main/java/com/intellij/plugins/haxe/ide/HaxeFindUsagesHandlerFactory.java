@@ -23,12 +23,15 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFileSystemItem;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HaxeFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
@@ -75,12 +78,51 @@ public class HaxeFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
           }
         }
         if (target instanceof HaxeMethod haxeMethod) {
-          PsiMethod[] supers = haxeMethod.findSuperMethods();
-          if (supers.length != 0) {
-            String chosen = askWhetherToSearchForOverridingMethods(target);
-            if (CURRENT_CLASS.equals(chosen))    { return new HaxeFindUsagesHandler(target); }
-            else if (BASE_CLASS.equals(chosen))  { return new HaxeFindUsagesHandler(supers[supers.length - 1]); }
-            else /* ANCESTOR_CLASSES */     { return new HaxeFindUsagesHandler(target, supers); }
+          HaxeClass containingClass = haxeMethod.getContainingClass();
+          if (containingClass != null) {
+            String methodName = haxeMethod.getName();
+            // Find matching methods in ancestor classes
+            List<HaxeNamedComponent> superMethods = new ArrayList<>();
+            java.util.LinkedList<HaxeClass> toVisit = new java.util.LinkedList<>();
+            java.util.Set<HaxeClass> visited = new java.util.HashSet<>();
+            // Start from immediate parents
+            for (HaxeType t : containingClass.getHaxeExtendsList()) {
+              HaxeClass resolved = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+              if (resolved != null) toVisit.add(resolved);
+            }
+            for (HaxeType t : containingClass.getHaxeImplementsList()) {
+              HaxeClass resolved = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+              if (resolved != null) toVisit.add(resolved);
+            }
+            while (!toVisit.isEmpty()) {
+              HaxeClass superClass = toVisit.pollFirst();
+              if (!visited.add(superClass)) continue;
+              // Check methods declared in this class only (not inherited)
+              for (HaxeMethod m : superClass.getHaxeMethodsSelf(null)) {
+                if (methodName != null && methodName.equals(m.getName())) {
+                  superMethods.add(m);
+                }
+              }
+              // Continue traversal up the hierarchy
+              for (HaxeType t : superClass.getHaxeExtendsList()) {
+                HaxeClass r = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+                if (r != null) toVisit.add(r);
+              }
+              for (HaxeType t : superClass.getHaxeImplementsList()) {
+                HaxeClass r = t.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+                if (r != null) toVisit.add(r);
+              }
+            }
+            if (!superMethods.isEmpty()) {
+              String chosen = askWhetherToSearchForOverridingMethods(target);
+              if (CURRENT_CLASS.equals(chosen)) {
+                return new HaxeFindUsagesHandler(target);
+              } else if (BASE_CLASS.equals(chosen)) {
+                return new HaxeFindUsagesHandler(superMethods.getLast());
+              } else /* ANCESTOR_CLASSES */ {
+                return new HaxeFindUsagesHandler(target, superMethods.toArray(PsiElement.EMPTY_ARRAY));
+              }
+            }
           }
         }
       }

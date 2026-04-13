@@ -60,8 +60,13 @@ public class HaxeGenericResolverUtil {
   public static HaxeGenericResolver generateResolverForSupers(HaxeClass clazz) {
     if (null == clazz) return null;
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    for (PsiClass superClazz : clazz.getSupers()) {
-      appendClassGenericResolver(superClazz, resolver);
+    for (HaxeType superType : clazz.getHaxeExtendsList()) {
+      HaxeClass superClazz = superType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (superClazz != null) appendClassGenericResolver(superClazz, resolver);
+    }
+    for (HaxeType superType : clazz.getHaxeImplementsList()) {
+      HaxeClass superClazz = superType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+      if (superClazz != null) appendClassGenericResolver(superClazz, resolver);
     }
     return resolver;
   }

@@ -53,13 +53,13 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
   }
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
+    HaxeClass aClass = myDeclaration.getContainingClass();
+    if (aClass != null) {
 
-      HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
+      HaxeClassReference superclassReference = new HaxeClassReference(aClass.getModel(), aClass);
       if (resolver != null) {
         SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
+          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(aClass));
 
         return reference.createHolder();
       } else {
@@ -68,16 +68,16 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
         return reference.createHolder();
       }
     }
-    return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
+    return SpecificHaxeClassReference.getUnknown(getMemberPsi()).createHolder();
   }
 
 
   @Nullable
   public HaxeClassModel getDeclaringEnum() {
     // TODO consider declaringClass (cached) instead
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-      return haxeClass.getModel();
+    HaxeClass aClass = myDeclaration.getContainingClass();
+    if (aClass != null) {
+      return aClass.getModel();
     }
     return null;
   }

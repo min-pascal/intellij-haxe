@@ -27,9 +27,7 @@ import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.Arrays;
@@ -54,7 +52,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     final HaxeComponentType componentType = element.getComponentType();
     final StringBuilder result = new StringBuilder();
 
-    final PsiClass containingClass = element instanceof PsiMember ? ((PsiMember)element).getContainingClass() : null;
+    final HaxeClass containingClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
     final boolean isInterfaceElement = containingClass != null && containingClass.isInterface();
 
     boolean addOverride = !isInterfaceElement && override && !element.isOverride();

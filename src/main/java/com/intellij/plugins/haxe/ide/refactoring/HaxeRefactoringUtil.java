@@ -50,8 +50,8 @@ public class HaxeRefactoringUtil {
 
     // if we are inside a method we should include variable names to the list of used names
     HaxeMethodDeclaration possibleMethod = PsiTreeUtil.getParentOfType(context, HaxeMethodDeclaration.class);
-    if (possibleMethod != null && possibleMethod.getBody() != null) {
-      PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(usedComponentNames), possibleMethod.getBody(), null, new ResolveState());
+    if (possibleMethod != null && possibleMethod.getBlockStatement() != null) {
+      PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(usedComponentNames), possibleMethod.getBlockStatement(), null, new ResolveState());
     }
     List<String> converted = convertNamesToString(usedComponentNames);
     Set<String> usedNames = new HashSet<>(converted);

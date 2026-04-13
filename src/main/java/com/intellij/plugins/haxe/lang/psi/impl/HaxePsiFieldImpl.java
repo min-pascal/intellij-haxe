@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -108,7 +107,6 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Nullable
-  @Override
   public PsiIdentifier getNameIdentifier() {
     final HaxeComponentName compName = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
     return compName != null ? PsiTreeUtil.getChildOfType(compName, HaxeIdentifier.class) : null;
@@ -126,10 +124,8 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   @Nullable
-  @Override
-  public PsiDocComment getDocComment() {
-    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
-    return (psiComment != null) ? new HaxePsiDocComment(this, psiComment) : null;
+  public PsiComment getDocComment() {
+    return HaxeResolveUtil.findDocumentation(this);
   }
 
   private boolean isPrivate() {
@@ -149,33 +145,13 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     return (!isPrivate() && super.isPublic()); // do not change the order of- and the- expressions
   }
 
-  @Override
   public boolean isDeprecated() {
     return false;
   }
 
-  @Override
-  public void setInitializer(@Nullable PsiExpression initializer) throws IncorrectOperationException {
-    // XXX: this may need to be implemented for refactoring functionality
-  }
-
   @Nullable
-  @Override
-  public PsiClass getContainingClass() {
+  public HaxeClass getContainingClass() {
     return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
-  }
-
-  @NotNull
-  @Override
-  public PsiType getType() {
-    PsiType psiType = null;
-    final HaxeTypeTag tag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
-    if (tag != null) {
-      final HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
-      final HaxeType type = (toa != null) ? toa.getType() : null;
-      psiType = (type != null) ? type.getPsiType() : null;
-    }
-    return psiType != null ? psiType : HaxePsiTypeAdapter.DYNAMIC;
   }
 
   @Override
@@ -186,46 +162,6 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Override
   @Nullable
   public HaxeVarInit getVarInit() {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiTypeElement getTypeElement() {
-    // Lifted, lock, stock, and barrel from PsiParameterImpl.java
-    // which was for the Java language.
-    // TODO:  Need to verify against the Haxe language spec.
-    //              Are there other situations?
-    for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {
-      if (child instanceof PsiTypeElement) {
-        //noinspection unchecked
-        return (PsiTypeElement)child;
-      }
-    }
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiExpression getInitializer() {
-    // XXX: this may need to be implemented for refactoring functionality
-    return null;
-  }
-
-  @Override
-  public boolean hasInitializer() {
-    // XXX: this may need to be implemented for refactoring functionality
-    return false;
-  }
-
-  @Override
-  public void normalizeDeclaration() throws IncorrectOperationException {
-    // intentionally left empty
-  }
-
-  @Nullable
-  @Override
-  public Object computeConstantValue() {
     return null;
   }
 
@@ -259,7 +195,6 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     return list;
   }
 
-  @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
     return this.getModifierList().hasModifierProperty(name);
   }

@@ -108,7 +108,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     PsiClass aClass;
     PsiElement aMember = null;
     if (element instanceof HaxeClassDeclaration || element instanceof HaxeInterfaceDeclaration) {
-      aClass = (AbstractHaxePsiClass)element;
+      // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
+      aClass = (PsiClass)(Object)(AbstractHaxePsiClass)element;
     }
     else if (element instanceof PsiMethod) {
       aClass = ((PsiMethod)element).getContainingClass();
@@ -138,7 +139,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     if (extendsList.isEmpty() && implementsList.isEmpty()) {
       final AbstractHaxePsiClass containingClass = aClass;
       if (containingClass != null && containingClass != aClass) {
-        invoke(project, dataContext, containingClass, aClass);
+      invoke(project, dataContext, (PsiClass)(Object)containingClass, aClass);
         return;
       }
       String message = RefactoringBundle.getCannotRefactorMessage(
@@ -146,7 +147,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.MEMBERS_PULL_UP);
       return;
     }
-    mySubclass = aClass;
+    mySubclass = (PsiClass)(Object)aClass;
     MemberInfoStorage memberInfoStorage = new MemberInfoStorage(mySubclass, new MemberInfo.Filter<PsiMember>() {
       @Override
       public boolean includeMember(PsiMember element) {
@@ -171,7 +172,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
-          psiClasses.add(haxeClass);
+          psiClasses.add((PsiClass)(Object)haxeClass);
         }
       }
     }
@@ -181,12 +182,12 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
-          psiClasses.add(haxeClass);
+          psiClasses.add((PsiClass)(Object)haxeClass);
         }
       }
     }
 
-    final HaxePullUpDialog dialog = new HaxePullUpDialog(project, aClass, psiClasses, memberInfoStorage, this);
+    final HaxePullUpDialog dialog = new HaxePullUpDialog(project, (PsiClass)(Object)aClass, psiClasses, memberInfoStorage, this);
     dialog.show();
   }
 

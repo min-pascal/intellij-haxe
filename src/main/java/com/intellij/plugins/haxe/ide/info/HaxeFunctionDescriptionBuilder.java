@@ -63,11 +63,11 @@ class HaxeFunctionDescriptionBuilder {
     }
 
     if (haxeClass != null) {
-      final PsiMethod[] constructors = haxeClass.getConstructors();
-      if (constructors.length > 0) {
+      List<HaxeNamedComponent> constructors = haxeClass.findHaxeMethodByName("new", null);
+      if (!constructors.isEmpty()) {
         final HaxeResolveResult resolveResult = HaxeResolveResult.create(result.getHaxeClass(), result.getSpecialization());
 
-        final HaxeMethod constructor = (HaxeMethod)constructors[0];
+        final HaxeMethod constructor = (HaxeMethod)constructors.get(0);
         return build(constructor, resolveResult, false);
       }
     }

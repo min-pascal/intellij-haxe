@@ -45,7 +45,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
     private void checkForMissingReturnStatement(HaxeMethod method, @NotNull AnnotationHolder holder) {
         // skip interfaces  etc.
-        if(method.getBody() == null) return;
+        if(method.getBlockStatement() == null) return;
 
         HaxeTypeTag typeTag = getTypeTagForMethodOrFunction(method);
         if(typeTag == null) return;
@@ -53,12 +53,12 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         ResultHolder typeTagType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, method);
         if(typeTagType.isVoid()) return;
 
-        @NotNull PsiElement[] children = method.getBody().getChildren();
+        @NotNull PsiElement[] children = method.getBlockStatement().getChildren();
         boolean hasAllPathsCovered = hasReturnPathsCovered(children);
 
         if(!hasAllPathsCovered) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Missing return statement")
-                    .range(method.getBody().getLastChild())
+                    .range(method.getBlockStatement().getLastChild())
                     .create();
         }
 

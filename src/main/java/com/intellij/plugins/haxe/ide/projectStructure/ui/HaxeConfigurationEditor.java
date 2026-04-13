@@ -146,13 +146,13 @@ public class HaxeConfigurationEditor {
           }
         }
 
-        TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, haxeClass);
+        TreeHaxeClassChooserDialog dialog = new TreeHaxeClassChooserDialog(HaxeBundle.message("choose.haxe.main.class"), project, myModule.getModuleScope(), filter, null);
         dialog.showDialog();
 
         PsiClass selected = dialog.getSelected();
 
         PsiFile selectedFile = null;
-        if (selected instanceof HaxeClass) {
+        if (selected != null) {
           selectedFile = selected.getContainingFile();
         }
 

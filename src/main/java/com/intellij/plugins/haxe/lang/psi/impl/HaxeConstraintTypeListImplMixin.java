@@ -33,16 +33,15 @@ public abstract class HaxeConstraintTypeListImplMixin extends AbstractHaxePsiCla
     return List.of(); // TODO
   }
 
-  @Override
   @NotNull
-  public PsiClass[] getSupers() {
+  public HaxeClass[] getSupers() {
     HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel) getModel();
     return model.getExtendsTypes().stream()
       .map(ResultHolder::getClassType)
       .filter(Objects::nonNull)
       .map(SpecificHaxeClassReference::getHaxeClass)
       .filter(Objects::nonNull)
-      .toArray(PsiClass[]::new);
+      .toArray(HaxeClass[]::new);
   }
 
   @Override

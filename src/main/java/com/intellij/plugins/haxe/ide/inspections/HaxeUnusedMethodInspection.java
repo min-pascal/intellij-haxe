@@ -111,9 +111,9 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
         String name = methodDeclaration.getModel().getName();
         if(name.startsWith("get_") || name.startsWith("set_")) {
             String propertyName = name.substring(4);
-            PsiClass containingClass = methodDeclaration.getContainingClass();
+            HaxeClass containingClass = methodDeclaration.getContainingClass();
             if(containingClass != null) {
-                PsiField fieldByName = containingClass.findFieldByName(propertyName, true);
+                HaxeNamedComponent fieldByName = containingClass.findHaxeFieldByName(propertyName, null);
                 return fieldByName != null;
             }
         }

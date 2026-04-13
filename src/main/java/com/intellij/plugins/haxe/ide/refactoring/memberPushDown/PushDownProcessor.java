@@ -432,9 +432,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       else if (member instanceof HaxeMethod method) {
         if (memberInfo.isToAbstract()) {
           if (method.hasModifierProperty(PsiModifier.PRIVATE)) {
-            PsiUtil.setModifierProperty(method, PsiModifier.PROTECTED, true);
+            // TODO: HaxeMethod no longer extends PsiModifierListOwner; cast through Object
+            PsiUtil.setModifierProperty((PsiModifierListOwner)(Object)method, PsiModifier.PROTECTED, true);
           }
-          PsiCodeBlock body = method.getBody();
+          PsiElement body = method.getBlockStatement();
           if (body != null) {
             body.replace(HaxeElementGenerator.createSemi(myProject).copy());
           }
@@ -546,7 +547,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
             }
 
 
-            newMember = HaxeElementGenerator.createMethodDeclaration(myProject, text);
+            // TODO: HaxeMethodDeclaration no longer extends PsiMember; cast through Object
+            newMember = (PsiMember)(Object)HaxeElementGenerator.createMethodDeclaration(myProject, text);
             PsiMember element = (PsiMember)targetClass.getRBrace().getParent().addBefore(newMember, targetClass.getRBrace());
             addMetadataAndDocs(psiElements, element, true);
             reformat(newMember);

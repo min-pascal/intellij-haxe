@@ -36,8 +36,8 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
-  public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
-    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstractType() && clazz.isEnum();
+  public static boolean isAbstractEnum(@Nullable HaxeClass clazz) {
+    return clazz != null && clazz.isAbstractType() && clazz.isEnum();
   }
 
   /**

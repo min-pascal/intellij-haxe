@@ -82,9 +82,10 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     final Collection<HaxeClass> subclasses = getSubclasses(theHaxeClass);
 
     final List<HierarchyNodeDescriptor> descriptors = new ArrayList<HierarchyNodeDescriptor>(subclasses.size());
-    for (final PsiClass aClass : subclasses) {
+    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
+    for (final HaxeClass aClass : subclasses) {
       if (HierarchyBrowserManager.getInstance(myProject).getState().HIDE_CLASSES_WHERE_METHOD_NOT_IMPLEMENTED) {
-        if (shouldHideClass(aClass)) {
+        if (shouldHideClass((PsiClass)(Object)aClass)) {
           continue;
         }
       }
@@ -93,7 +94,8 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
       descriptors.add(d);
     }
 
-    final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod(theHaxeClass, false);
+    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
+    final PsiMethod existingMethod = ((HaxeMethodHierarchyNodeDescriptor)descriptor).getMethod((PsiClass)(Object)theHaxeClass, false);
     if (existingMethod != null && !existingMethod.hasModifierProperty(HaxePsiModifier.FINAL)) {
       FunctionalExpressionSearch.search(existingMethod).forEach(expression -> {
         descriptors.add(new HaxeMethodHierarchyNodeDescriptor(myProject, descriptor, expression, false, HaxeMethodHierarchyTreeStructure.this));
@@ -111,8 +113,8 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
     }
 
     if (hasBaseClassMethod(psiClass) || isAbstract(psiClass)) {
-      for (final PsiClass subclass : getSubclasses((HaxeClass)psiClass)) {
-        if (!shouldHideClass(subclass)) {
+      for (final HaxeClass subclass : getSubclasses((HaxeClass)psiClass)) {
+        if (!shouldHideClass((PsiClass)(Object)subclass)) {
           return false;
         }
       }

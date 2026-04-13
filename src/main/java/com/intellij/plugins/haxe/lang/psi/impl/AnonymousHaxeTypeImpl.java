@@ -49,16 +49,15 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
     return model.getExtensionTypesPsi();
   }
 
-  @Override
   @NotNull
-  public PsiClass[] getSupers() {
+  public HaxeClass[] getSupers() {
     HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel) getModel();
     return model.getExtendsTypes().stream()
       .map(ResultHolder::getClassType)
       .filter(Objects::nonNull)
       .map(SpecificHaxeClassReference::getHaxeClass)
       .filter(Objects::nonNull)
-      .toArray(PsiClass[]::new);
+      .toArray(HaxeClass[]::new);
   }
 
   @Override

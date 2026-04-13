@@ -79,7 +79,8 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDe
   public final PsiElement getTargetElement() {
     final HaxeClass theHaxeClass = getHaxeClass();
     if ((null == theHaxeClass) || (! theHaxeClass.isValid())) return null;
-    final PsiMethod method = getMethod(theHaxeClass, false);
+    // TODO: HaxeClass no longer extends PsiClass; cast through Object until hierarchy support is rewritten
+    final PsiMethod method = getMethod((PsiClass)(Object)theHaxeClass, false);
     if (method != null) return method;
     return theHaxeClass;
   }

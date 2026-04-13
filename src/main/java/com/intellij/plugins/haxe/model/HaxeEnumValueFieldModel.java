@@ -51,13 +51,13 @@ public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumV
 
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
+    HaxeClass aClass = getMemberPsi() instanceof HaxePsiField f ? f.getContainingClass() : null;
+    if (aClass != null) {
 
-      HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
+      HaxeClassReference superclassReference = new HaxeClassReference(aClass.getModel(), aClass);
       if (resolver != null) {
         SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
+          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(aClass));
 
         return reference.createHolder();
       } else {
@@ -66,7 +66,7 @@ public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumV
         return reference.createHolder();
       }
     }
-    return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
+    return SpecificHaxeClassReference.getUnknown(getMemberPsi()).createHolder();
   }
 
 
@@ -77,9 +77,9 @@ public class HaxeEnumValueFieldModel extends HaxeFieldModel implements HaxeEnumV
 
   @Nullable
   public HaxeClassModel getDeclaringEnum() {
-    PsiClass aClass = getMemberPsi().getContainingClass();
-    if (aClass instanceof HaxeClass haxeClass) {
-      return haxeClass.getModel();
+    HaxeClass aClass = getMemberPsi() instanceof HaxePsiField f ? f.getContainingClass() : null;
+    if (aClass != null) {
+      return aClass.getModel();
     }
     return null;
   }

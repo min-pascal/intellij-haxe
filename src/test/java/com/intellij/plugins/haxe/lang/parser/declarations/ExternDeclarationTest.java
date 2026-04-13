@@ -27,8 +27,8 @@ import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,7 +67,7 @@ public class ExternDeclarationTest extends DeclarationTestBase {
     doTest(true);
     HaxeFile file = (HaxeFile)myFile;
     assertNotNull(file);
-    PsiClass[] psiClasses = file.getClasses();
+    HaxeClass[] psiClasses = file.getClasses();
     assertEquals(1, psiClasses.length);
     AbstractHaxePsiClass psiClass = (AbstractHaxePsiClass)psiClasses[0];
     assertTrue(psiClass.isExtern());

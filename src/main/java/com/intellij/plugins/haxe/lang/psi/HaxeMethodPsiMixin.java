@@ -20,14 +20,49 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
-import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiIdentifier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 9/28/14.
  */
-public interface HaxeMethodPsiMixin extends PsiMethod, HaxeNamedComponent, HaxeModelTarget {
+public interface HaxeMethodPsiMixin extends HaxeNamedComponent, HaxeModelTarget {
 
   HaxeMethodModel getModel();
 
   HaxeGenericParam getGenericParam();
+
+  // Methods previously inherited from PsiMethod, now declared directly
+  boolean isConstructor();
+
+  boolean isVarArgs();
+
+  boolean isDeprecated();
+
+  @Nullable
+  HaxeClass getContainingClass();
+
+  @Nullable
+  PsiIdentifier getNameIdentifier();
+
+  @Nullable
+  HaxeBlockStatement getBlockStatement();
+
+  @Nullable
+  HaxeReturnStatement getReturnStatement();
+
+  @Nullable
+  HaxeTypeTag getTypeTag();
+
+  @Nullable
+  HaxeThrowStatement getThrowStatement();
+
+  @NotNull
+  HaxeParameterList getParameterList();
+
+  @NotNull
+  HaxeModifierList getModifierList();
+
+  boolean hasModifierProperty(@NotNull String name);
 }

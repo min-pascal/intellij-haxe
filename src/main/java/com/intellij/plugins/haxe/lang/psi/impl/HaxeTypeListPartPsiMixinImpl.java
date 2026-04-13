@@ -37,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -67,14 +68,14 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   // We can't assign this type in the constructor because the children aren't known
   // (to us) at construction time.  We'll check it later when one of the interfaces
   // are hit.
-  PsiClass myChildClass = null;
+  HaxeClass myChildClass = null;
 
   HaxeTypeListPartPsiMixinImpl(ASTNode node) {
     super(node);
   }
 
   @NotNull
-  private PsiClass getDelegate() {
+  private HaxeClass getDelegate() {
     // We're going to try to cache our child.  If the code changes, then this reference
     // may refer to the wrong class.  In that case, it would be  better to do the
     // lookup (resolveHaxeClass()), which has a caching algorithm of its own and
@@ -93,7 +94,9 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
           IElementType targetType = target.getNode().getElementType();
 
           if (HaxeTokenTypes.TYPE.equals(targetType)) {
-            myChildClass = new HaxeClassDelegateForTypeChild((HaxeType)target);
+            HaxeType haxeType = (HaxeType) target;
+            HaxeClass resolved = haxeType.getReferenceExpression().resolveHaxeClass().getHaxeClass();
+            myChildClass = resolved != null ? resolved : AbstractHaxePsiClass.createEmptyFacade(getProject());
           } else if (HaxeTokenTypes.ANONYMOUS_TYPE.equals(targetType)){
             myChildClass = (HaxeAnonymousType) target;
           } else {
@@ -177,62 +180,62 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   @Override
   @NotNull
   public PsiField[] getFields() {
-    return getDelegate().getFields();
+    return PsiField.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiMethod[] getMethods() {
-    return getDelegate().getMethods();
+    return PsiMethod.EMPTY_ARRAY;
   }
 
   @Override
   public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
-    return getDelegate().findMethodBySignature(patternMethod, checkBases);
+    return null;
   }
 
   @Override
   @NotNull
   public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
-    return getDelegate().findMethodsBySignature(patternMethod, checkBases);
+    return PsiMethod.EMPTY_ARRAY;
   }
 
   @Override
   public PsiField findFieldByName(String name, boolean checkBases) {
-    return getDelegate().findFieldByName(name, checkBases);
+    return null;
   }
 
   @Override
   @NotNull
   public PsiMethod[] findMethodsByName(String name, boolean checkBases) {
-    return getDelegate().findMethodsByName(name, checkBases);
+    return PsiMethod.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(String name, boolean checkBases) {
-    return getDelegate().findMethodsAndTheirSubstitutorsByName(name, checkBases);
+    return new ArrayList<>();
   }
 
   @Override
   @NotNull
   public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-    return getDelegate().getAllMethodsAndTheirSubstitutors();
+    return new ArrayList<>();
   }
 
   @Override
   public PsiClass findInnerClassByName(String name, boolean checkBases) {
-    return getDelegate().findInnerClassByName(name, checkBases);
+    return null;
   }
 
   @Override
   public PsiTypeParameterList getTypeParameterList() {
-    return getDelegate().getTypeParameterList();
+    return null;
   }
 
   @Override
   public boolean hasTypeParameters() {
-    return getDelegate().hasTypeParameters();
+    return getDelegate().isGeneric();
   }
 
   @Override
@@ -242,12 +245,12 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
   @Override
   public boolean isInheritorDeep(PsiClass baseClass, PsiClass classToByPass) {
-    return getDelegate().isInheritorDeep(baseClass, classToByPass);
+    return false;
   }
 
   @Override
   public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
-    return getDelegate().isInheritor(baseClass, checkDeep);
+    return false;
   }
 
   @Override
@@ -264,12 +267,12 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   @Override
   @NotNull
   public PsiMethod[] getConstructors() {
-    return getDelegate().getConstructors();
+    return PsiMethod.EMPTY_ARRAY;
   }
 
   @Override
   public PsiDocComment getDocComment() {
-    return getDelegate().getDocComment();
+    return null;
   }
 
   @Override
@@ -280,98 +283,99 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   @Override
   @NotNull
   public PsiReferenceList getExtendsList() {
-    return getDelegate().getExtendsList();
+    // Type parameters don't have extends lists in Haxe
+    return null;
   }
 
   @Override
   public PsiReferenceList getImplementsList() {
-    return getDelegate().getImplementsList();
+    return null;
   }
 
   @Override
   @NotNull
   public PsiClassType[] getExtendsListTypes() {
-    return getDelegate().getExtendsListTypes();
+    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClassType[] getImplementsListTypes() {
-    return getDelegate().getImplementsListTypes();
+    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClass[] getInnerClasses() {
-    return getDelegate().getInnerClasses();
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiField[] getAllFields() {
-    return getDelegate().getAllFields();
+    return PsiField.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiMethod[] getAllMethods() {
-    return getDelegate().getAllMethods();
+    return PsiMethod.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClass[] getAllInnerClasses() {
-    return getDelegate().getAllInnerClasses();
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
-    return getDelegate().getInitializers();
+    return PsiClassInitializer.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiTypeParameter[] getTypeParameters() {
-    return getDelegate().getTypeParameters();
+    return PsiTypeParameter.EMPTY_ARRAY;
   }
 
   @Override
   public PsiClass getSuperClass() {
-    return getDelegate().getSuperClass();
+    return null;
   }
 
   @Override
   public PsiClass[] getInterfaces() {
-    return getDelegate().getInterfaces();
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClass[] getSupers() {
-    return getDelegate().getSupers();
+    return PsiClass.EMPTY_ARRAY;
   }
 
   @Override
   @NotNull
   public PsiClassType[] getSuperTypes() {
-    return getDelegate().getSuperTypes();
+    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override
   public PsiClass getContainingClass() {
-    return getDelegate().getContainingClass();
+    return null;
   }
 
   @Override
   @NotNull
   public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
-    return getDelegate().getVisibleSignatures();
+    return Collections.emptyList();
   }
 
   @Override
   public HaxeModifierList getModifierList() {
-    return (HaxeModifierList) getDelegate().getModifierList();
+    return getDelegate().getModifierList();
   }
 
   @Override
@@ -381,14 +385,14 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
   @Override
   public PsiJavaToken getLBrace() {
-    // Casting this is only doable because HaxeAstFactory
-    // creates PsiJavaTokens.
-    return (PsiJavaToken)getDelegate().getLBrace();
+    PsiElement lBrace = getDelegate().getLBrace();
+    return lBrace instanceof PsiJavaToken ? (PsiJavaToken) lBrace : null;
   }
 
   @Override
   public PsiJavaToken getRBrace() {
-    return (PsiJavaToken) getDelegate().getRBrace();
+    PsiElement rBrace = getDelegate().getRBrace();
+    return rBrace instanceof PsiJavaToken ? (PsiJavaToken) rBrace : null;
   }
 
   //
@@ -420,191 +424,5 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
     return getAnnotations();
   }
 
-
-
-  // //////////////////////////////////////////////////////////////////////////////////
-  // //////////////////////////////////////////////////////////////////////////////////
-  //
-  // HaxeTypeListPartForTypeChild
-  //
-  // //////////////////////////////////////////////////////////////////////////////////
-  // //////////////////////////////////////////////////////////////////////////////////
-
-  /**
-   * Deals with type references that appear as children to HaxeTypeOrAnonymous
-   * child elements.
-   */
-  private static class HaxeClassDelegateForTypeChild extends PsiTypeParameterImpl {
-
-    private HaxeType myChildType = null;
-
-    public HaxeClassDelegateForTypeChild(@NotNull HaxeType childType) {
-      super(childType.getNode());
-      myChildType = childType;
-    }
-
-    @NotNull
-    protected HaxeReference getDelegate() {
-      return myChildType.getReferenceExpression();
-    }
-
-    @Nullable
-    protected HaxeClass getResolvedDelegate() {
-      PsiElement elem = getDelegate().resolve();
-      return elem instanceof HaxeClass? (HaxeClass) elem : null;
-    }
-
-    //
-    // PsiTypeParameter overrides
-    //
-
-    // PsiTypeParameter extends PsiClass instead of a reference.  It just stubs
-    // out most of the functionality.
-
-    @Override
-    @Nullable
-    public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
-      // XXX: If it turns out that we need this method, we need to find the
-      //      actual class implementation (getDelegate().resolveHaxeClass())
-      //      and call that.
-      log.warn("Unexpected call to findMethodBySignature()");
-      return null;
-    }
-
-    @Override
-    @NotNull
-    public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
-      log.warn("Unexpected call to findMethodsBySignature()");
-      return PsiMethod.EMPTY_ARRAY;
-    }
-
-    @Override
-    public PsiField findFieldByName(String name, boolean checkBases) {
-      log.warn("Unexpected call to findFieldByName()");
-      return null;
-    }
-
-    @Override
-    @NotNull
-    public PsiMethod[] findMethodsByName(String name, boolean checkBases) {
-      log.warn("Unexpected call to findMethodsByName()");
-      return PsiMethod.EMPTY_ARRAY;
-    }
-
-    @Override
-    @NotNull
-    public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(String name, boolean checkBases) {
-      log.warn("Unexpected call to findMethodsAndTheirSubstitutorsByName()");
-      return new ArrayList<Pair<PsiMethod,PsiSubstitutor>>();
-    }
-
-    @Override
-    @NotNull
-    public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-      log.warn("Unexpected call to getAllMethodsAndTheirSubstitutors");
-      return new ArrayList<Pair<PsiMethod,PsiSubstitutor>>();
-    }
-
-    @Override
-    public PsiClass findInnerClassByName(String name, boolean checkBases) {
-      return null; // No named inner classes in Haxe.
-    }
-
-    @Override
-    public PsiElement getScope() {
-      /**
-       * Returns the PSI member in which the class has been declared (for example,
-       * the method containing the anonymous inner class, or the file containing a regular
-       * class, or the class owning a type parameter).
-       */
-      // As a TypeListPart, we are only children of extends, implements, and generic parameters.
-      // In each of these cases, the class for which we are being declared (which may be
-      // an anonymous type) is the scope.
-      PsiElement parent = getParent();
-      while (parent != null) {
-        IElementType parentType = parent.getNode().getElementType();
-        if (HaxeTokenTypes.ANONYMOUS_TYPE.equals(parentType)
-        || (HaxeTokenTypes.CLASS_DECLARATION.equals(parentType))
-        || parent instanceof HaxeFile )  // HaxeFile is a catchall..
-        {
-          break;
-        }
-        parent = parent.getParent();
-      }
-
-      return parent;
-    }
-
-    @NotNull
-    @Override
-    public PsiIdentifier getNameIdentifier() {
-      // For a HaxeType, the identifier is two children below.  The first is
-      // a reference.
-      HaxeReferenceExpression ref = PsiTreeUtil.getRequiredChildOfType(this, HaxeReferenceExpression.class);
-      if (ref.getFirstChild() instanceof HaxeReferenceExpression) {
-        ref = UsefulPsiTreeUtil.getLastChild(ref, HaxeReferenceExpression.class, ref);
-      }
-      HaxeIdentifier id = PsiTreeUtil.getRequiredChildOfType(ref, HaxeIdentifier.class);
-      return id;
-    }
-
-    @Override
-    public boolean isInheritorDeep(PsiClass baseClass, PsiClass classToByPass) {
-      HaxeClass resolved = getResolvedDelegate();
-      return null != resolved && resolved.isInheritorDeep(baseClass, classToByPass);
-    }
-
-    @Override
-    public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
-      HaxeClass resolved = getResolvedDelegate();
-      return null != resolved && resolved.isInheritor(baseClass, checkDeep);
-    }
-
-    @Override
-    @NotNull
-    public PsiClassType[] getExtendsListTypes() {
-      return PsiClassType.EMPTY_ARRAY;
-    }
-
-    @Override
-    @NotNull
-    public PsiClassType[] getImplementsListTypes() {
-      return PsiClassType.EMPTY_ARRAY;
-    }
-
-    @Override
-    public PsiClass getSuperClass() {
-      HaxeClass resolved = getResolvedDelegate();
-      return null == resolved ? null : resolved.getSuperClass();
-    }
-
-    @Override
-    public PsiClass[] getInterfaces() {
-      HaxeClass resolved = getResolvedDelegate();
-      return null == resolved ? PsiClass.EMPTY_ARRAY : resolved.getInterfaces();
-    }
-
-    @Override
-    @NotNull
-    public PsiClass[] getSupers() {
-      HaxeClass resolved = getResolvedDelegate();
-      return null == resolved ? PsiClass.EMPTY_ARRAY : resolved.getSupers();
-    }
-
-    @Override
-    @NotNull
-    public PsiClassType[] getSuperTypes() {
-      HaxeClass resolved = getResolvedDelegate();
-      return null == resolved ? PsiClassType.EMPTY_ARRAY : resolved.getSuperTypes();
-    }
-
-    @Override
-    @NotNull
-    public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
-      HaxeClass resolved = getResolvedDelegate();
-      return PsiSuperMethodImplUtil.getVisibleSignatures(resolved);
-    }
-
-  }
 
 }

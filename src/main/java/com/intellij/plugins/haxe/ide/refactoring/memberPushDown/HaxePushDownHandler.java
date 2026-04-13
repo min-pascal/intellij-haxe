@@ -86,12 +86,13 @@ public class HaxePushDownHandler implements RefactoringActionHandler, HaxePushDo
     PsiClass aClass;
     PsiElement aMember = null;
     if (element instanceof HaxeClassDeclaration) {
-      aClass = (HaxeClassDeclaration) element;
+      // TODO: HaxeClass no longer extends PsiClass; cast through Object until refactoring support is rewritten
+      aClass = (PsiClass)(Object)(HaxeClassDeclaration) element;
     } else if (element instanceof HaxeMethod) {
-      aClass = ((HaxeMethod) element).getContainingClass();
+      aClass = (PsiClass)(Object)((HaxeMethod) element).getContainingClass();
       aMember = element;
     } else if (element instanceof HaxeFieldDeclaration) {
-      aClass = ((HaxeFieldDeclaration)element).getContainingClass();
+      aClass = (PsiClass)(Object)((HaxeFieldDeclaration)element).getContainingClass();
       aMember = element;
     }
     else {
