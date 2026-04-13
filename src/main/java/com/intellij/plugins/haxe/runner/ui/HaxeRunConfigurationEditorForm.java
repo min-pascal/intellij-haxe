@@ -25,10 +25,8 @@ import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -181,10 +179,9 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     }
     else if (getSelectedModule() != null) {
       final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(getSelectedModule());
-      final CompilerModuleExtension model = CompilerModuleExtension.getInstance(getSelectedModule());
-      assert model != null;
-      final String url = model.getCompilerOutputUrl() + "/" + settings.getOutputFileName();
-      myPathToFileTextField.setText(FileUtil.toSystemDependentName(VfsUtil.urlToPath(url)));
+      final String outputFolder = settings.getOutputFolder();
+      final String outputFile = outputFolder + "/" + settings.getOutputFileName();
+      myPathToFileTextField.setText(FileUtil.toSystemDependentName(outputFile));
     }
     else {
       myPathToFileTextField.setText("");

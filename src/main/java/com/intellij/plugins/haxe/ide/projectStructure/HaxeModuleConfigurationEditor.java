@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.ide.projectStructure;
 
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationState;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.projectStructure.ui.HaxeConfigurationEditor;
@@ -35,8 +34,7 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
   private HaxeConfigurationEditor haxeConfigurationEditor;
 
   public HaxeModuleConfigurationEditor(ModuleConfigurationState state) {
-    haxeConfigurationEditor = new HaxeConfigurationEditor(state.getCurrentRootModel().getModule(), state.getCurrentRootModel().getModuleExtension(
-      CompilerModuleExtension.class));
+    haxeConfigurationEditor = new HaxeConfigurationEditor(state.getCurrentRootModel().getModule());
   }
 
   @Override

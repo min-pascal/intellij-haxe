@@ -32,11 +32,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -320,14 +318,17 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
       @Override
       public String getModuleDefaultCompileOutputPath() {
-        // This is probably the right way to do it, *if* we actually had a CompilerModuleExtension for Haxe.
-        //  final CompilerModuleExtension moduleExtension = CompilerModuleExtension.getInstance(module);
-        //  final String outputUrl = moduleExtension != null ? moduleExtension.getCompilerOutputUrl() : null;
-        //  return VfsUtilCore.urlToPath(outputUrl);
-
-        // Instead, reach down directly and get the project's output path.
-        final String projectOutputPath = CompilerProjectExtension.getInstance(module.getProject()).getCompilerOutputUrl();
-        return VfsUtilCore.urlToPath(projectOutputPath);
+        // Use Haxe module settings output folder if available
+        final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
+        if (settings != null) {
+          String outputFolder = settings.getOutputFolder();
+          if (outputFolder != null && !outputFolder.isEmpty()) {
+            return outputFolder;
+          }
+        }
+        // Fall back to module content root + /out
+        VirtualFile moduleDir = ProjectUtil.guessModuleDir(module);
+        return moduleDir != null ? moduleDir.getPath() + "/out" : "";
       }
 
       @Override

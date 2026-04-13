@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.config.sdk;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.SdkModificator;
-import com.intellij.openapi.roots.JavadocOrderRootType;
+import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -124,7 +124,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       docRoot = sdkRoot.findChild("doc");
     }
     if (docRoot != null) {
-      modificator.addRoot(docRoot, JavadocOrderRootType.getInstance());
+      modificator.addRoot(docRoot, OrderRootType.SOURCES);
     }
   }
 

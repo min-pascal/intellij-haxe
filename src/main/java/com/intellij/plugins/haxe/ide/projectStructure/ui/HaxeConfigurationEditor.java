@@ -30,13 +30,11 @@ import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.roots.CompilerModuleExtension;
+
 import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.*;
@@ -102,13 +100,10 @@ public class HaxeConfigurationEditor {
   private OpenFLTarget selectedOpenFLTarget = OpenFLTarget.FLASH;
 
   private final Module myModule;
-  private final CompilerModuleExtension myExtension;
-
   private final List<UnnamedConfigurable> configurables = new ArrayList<UnnamedConfigurable>();
 
-  public HaxeConfigurationEditor(Module module, CompilerModuleExtension extension) {
+  public HaxeConfigurationEditor(Module module) {
     myModule = module;
-    myExtension = extension;
     addActionListeners();
 
     initExtensions();
@@ -387,9 +382,7 @@ public class HaxeConfigurationEditor {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(myModule);
     assert settings != null;
 
-    final String url = myExtension.getCompilerOutputUrl();
-    final String urlCandidate = VfsUtilCore.pathToUrl(myFolderTextField.getText());
-    boolean result = !urlCandidate.equals(url);
+    boolean result = !myFolderTextField.getText().equals(settings.getOutputFolder());
 
     result = result || settings.getNmeTarget() != selectedNmeTarget;
     result = result || !FileUtil.toSystemIndependentName(myNMEFileChooserTextField.getText()).equals(settings.getNmmlPath());
@@ -436,8 +429,7 @@ public class HaxeConfigurationEditor {
       configurable.reset();
     }
 
-    final String url = myExtension.getCompilerOutputUrl();
-    myFolderTextField.setText(VfsUtil.urlToPath(url));
+    myFolderTextField.setText(settings.getOutputFolder());
     myHxmlFileChooserTextField.setText(settings.getHxmlPath());
     myOpenFLFileChooserTextField.setText(settings.getOpenFLPath());
     myNMEFileChooserTextField.setText(settings.getNmmlPath());
@@ -486,18 +478,8 @@ public class HaxeConfigurationEditor {
       }
     }
 
-    final String url = myExtension.getCompilerOutputUrl();
-    final String urlCandidate = VfsUtil.pathToUrl(myFolderTextField.getText());
-
     ExternalSystemProjectTracker.getInstance(myModule.getProject()).scheduleProjectRefresh();
     ExternalSystemProjectTracker.getInstance(myModule.getProject()).markDirty(HaxelibAutoImport.mySystemProjectId);
-
-    // IMPORTANT!: do not save if only "file://"
-    // The virtual file system can resolve this (usually to workDir) and can cause a lot of damage when  a clean task is executed.
-    if (!urlCandidate.equals(url) && !urlCandidate.equalsIgnoreCase("file://")) {
-      myExtension.setCompilerOutputPath(urlCandidate);
-      myExtension.commit();
-    }
   }
 
   private int getCurrentBuildConfig() {
