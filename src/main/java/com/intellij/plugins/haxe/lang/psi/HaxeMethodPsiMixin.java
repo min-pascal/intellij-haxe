@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public interface HaxeMethodPsiMixin extends HaxeNamedComponent, HaxeModelTarget 
   HaxeClass getContainingClass();
 
   @Nullable
-  PsiIdentifier getNameIdentifier();
+  PsiElement getNameIdentifier();
 
   @Nullable
   HaxeBlockStatement getBlockStatement();

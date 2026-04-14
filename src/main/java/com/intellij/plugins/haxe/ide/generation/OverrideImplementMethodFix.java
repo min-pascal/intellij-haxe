@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.generation;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;

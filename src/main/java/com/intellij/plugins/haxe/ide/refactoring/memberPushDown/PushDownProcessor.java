@@ -178,7 +178,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     pushDownConflicts.checkSourceClassConflicts();
 
     if (usagesIn.length == 0) {
-      if (myClass.isEnum() || myClass.hasModifierProperty(PsiModifier.FINAL)) {
+      if (myClass.isEnum() || myClass.hasModifierProperty(HaxePsiModifier.FINAL)) {
         String message = (myClass.isEnum()
                           ? "Enum " + myClass.getQualifiedName() + " doesn't have constants to inline to. "
                           : "Final class " + myClass.getQualifiedName() + "does not have inheritors. ") +
@@ -431,9 +431,9 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       }
       else if (member instanceof HaxeMethod method) {
         if (memberInfo.isToAbstract()) {
-          if (method.hasModifierProperty(PsiModifier.PRIVATE)) {
+          if (method.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
             // TODO: HaxeMethod no longer extends PsiModifierListOwner; cast through Object
-            PsiUtil.setModifierProperty((PsiModifierListOwner)(Object)method, PsiModifier.PROTECTED, true);
+            PsiUtil.setModifierProperty((PsiModifierListOwner)(Object)method, HaxePsiModifier.PRIVATE, true);
           }
           PsiElement body = method.getBlockStatement();
           if (body != null) {
@@ -470,7 +470,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       final List<PsiReference> refsToRebind = new ArrayList<PsiReference>();
       final PsiModifierList list = member.getModifierList();
       log.assertTrue(list != null, "Assertion failed");
-      if (list.hasModifierProperty(PsiModifier.STATIC)) {
+      if (list.hasModifierProperty(HaxePsiModifier.STATIC)) {
         Collection<PsiReference> references = ReferencesSearch.search(member).findAll();
         for (final PsiReference reference : references) {
           final PsiElement element = reference.getElement();
@@ -490,9 +490,9 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       if (member instanceof PsiField) {
         ((PsiField)member).normalizeDeclaration();
         if (myClass.isInterface() && !targetClass.isInterface()) {
-          PsiUtil.setModifierProperty(member, PsiModifier.PUBLIC, true);
-          PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
-          PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
+          PsiUtil.setModifierProperty(member, HaxePsiModifier.PUBLIC, true);
+          PsiUtil.setModifierProperty(member, HaxePsiModifier.STATIC, true);
+          PsiUtil.setModifierProperty(member, HaxePsiModifier.FINAL, true);
         }
         newMember = (PsiMember)targetClass.getRBrace().getParent().addBefore(member, targetClass.getRBrace());
         addMetadataAndDocs(psiElements, newMember, true);
@@ -519,12 +519,12 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
             }
 
             if (!targetClass.isInterface()) {
-              PsiUtil.setModifierProperty(newMember, PsiModifier.PUBLIC, true);
-              if (newMember.hasModifierProperty(PsiModifier.DEFAULT)) {
-                PsiUtil.setModifierProperty(newMember, PsiModifier.DEFAULT, false);
+              PsiUtil.setModifierProperty(newMember, HaxePsiModifier.PUBLIC, true);
+              if (newMember.hasModifierProperty("default")) {
+                PsiUtil.setModifierProperty(newMember, "default", false);
               }
               else {
-                PsiUtil.setModifierProperty(newMember, PsiModifier.ABSTRACT, true);
+                PsiUtil.setModifierProperty(newMember, HaxePsiModifier.ABSTRACT, true);
               }
             }
 
@@ -533,8 +533,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           else if (memberInfo.isToAbstract()) {
             PsiElement brace = targetClass.getRBrace();
             newMember = (PsiMember)brace.getParent().addBefore(method, brace);
-            if (newMember.hasModifierProperty(PsiModifier.PRIVATE)) {
-              PsiUtil.setModifierProperty(newMember, PsiModifier.PROTECTED, true);
+            if (newMember.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
+              PsiUtil.setModifierProperty(newMember, HaxePsiModifier.PRIVATE, true);
             }
             addMetadataAndDocs(psiElements, newMember, false);
             //myJavaDocPolicy.processNewJavaDoc(((PsiMethod)newMember).getDocComment());

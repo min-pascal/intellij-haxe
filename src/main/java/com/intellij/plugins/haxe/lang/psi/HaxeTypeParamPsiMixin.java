@@ -17,12 +17,10 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiTypeParameterList;
-
 /**
  * Created by ebishton on 10/18/14.
  */
-public interface HaxeTypeParamPsiMixin extends HaxePsiCompositeElement, PsiTypeParameterList {
+public interface HaxeTypeParamPsiMixin extends HaxePsiCompositeElement {
   // In the Haxe version of the PSI tree, the type parameter is used only by
   // the implements and extends lists.  Haxe uses GENERIC_xxx PSI elements for
   // parameters on the actual type being declared.

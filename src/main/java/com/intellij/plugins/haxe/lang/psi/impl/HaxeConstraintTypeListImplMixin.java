@@ -7,7 +7,7 @@ import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.plugins.haxe.model.HaxeConstraintTypeListModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,7 +56,7 @@ public abstract class HaxeConstraintTypeListImplMixin extends AbstractHaxePsiCla
 
   @Nullable
   @Override
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     //TODO fix
     return new HaxeIdentifierImpl(new HaxeDummyASTNode("Tmp Name TODO", HaxeConstraintTypeListImplMixin.this.getProject())) {
       @NotNull

@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.hierarchy.call;
 
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.ide.hierarchy.call.CallReferenceProcessor;
 import com.intellij.ide.hierarchy.call.JavaCallHierarchyData;
 import com.intellij.ide.util.treeView.NodeDescriptor;
@@ -91,13 +92,13 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
       final PsiElement qualifierElement = ((HaxeReferenceExpression)reference).getQualifier();
       final HaxeReferenceExpression qualifier = (HaxeReferenceExpression) qualifierElement;
       if (qualifier instanceof HaxeSuperExpression) { // filter super.foo() call inside foo() and similar cases (bug 8411)
-        final PsiClass superClass = PsiUtil.resolveClassInType(qualifier.getPsiType());
+        final PsiClass superClass = PsiUtil.resolveClassInType((PsiType)qualifier.getPsiType());
         if (superClass == null || originalClass.isInheritor(superClass, true)) {
           return true;
         }
       }
-      if (qualifier != null && !methodToFind.hasModifierProperty(PsiModifier.STATIC)) {
-        final PsiType qualifierType = qualifier.getPsiType();
+      if (qualifier != null && !methodToFind.hasModifierProperty(HaxePsiModifier.STATIC)) {
+        final PsiType qualifierType = (PsiType)qualifier.getPsiType();
         if (qualifierType instanceof PsiClassType &&
             !TypeConversionUtil.isAssignable(qualifierType, originalType) &&
             methodToFind != method) {

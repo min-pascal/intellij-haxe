@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.module;
 
+import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.module.ModuleType;
@@ -28,8 +29,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
+public class HaxeModuleType extends ModuleType<ModuleBuilder> {
   private static final String MODULE_TYPE_ID = "HAXE_MODULE";
+  private static final String HAXE_MODULE_BUILDER_CLASS = "com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder";
 
   public HaxeModuleType() {
     super(MODULE_TYPE_ID);
@@ -56,19 +58,31 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   }
 
   @Override
-  public @NotNull HaxeModuleBuilder createModuleBuilder() {
-    return new HaxeModuleBuilder();
+  public @NotNull ModuleBuilder createModuleBuilder() {
+    try {
+      Class<?> clazz = Class.forName(HAXE_MODULE_BUILDER_CLASS);
+      return (ModuleBuilder) clazz.getDeclaredConstructor().newInstance();
+    } catch (Exception | NoClassDefFoundError e) {
+      throw new UnsupportedOperationException("Haxe module builder requires Java support plugin", e);
+    }
   }
 
 
   public ModuleWizardStep @NotNull [] createWizardSteps(final WizardContext wizardContext,
-                                                        final HaxeModuleBuilder moduleBuilder,
+                                                        final ModuleBuilder moduleBuilder,
                                                         final ModulesProvider modulesProvider) {
     HaxeSdkType type = HaxeSdkType.getInstance();
     type.ensureSdk();
 
-    return new ModuleWizardStep[]{
-      new HaxeSdkWizardStep(moduleBuilder, wizardContext, type)
-    };
+    try {
+      Class<?> builderClass = Class.forName(HAXE_MODULE_BUILDER_CLASS);
+      if (builderClass.isInstance(moduleBuilder)) {
+        return new ModuleWizardStep[]{
+          new HaxeSdkWizardStep(moduleBuilder, wizardContext, type)
+        };
+      }
+    } catch (ClassNotFoundException | NoClassDefFoundError ignored) {
+    }
+    return ModuleWizardStep.EMPTY_ARRAY;
   }
 }

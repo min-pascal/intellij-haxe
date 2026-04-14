@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.codeInsight.generation.OverrideImplementExploreUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -103,7 +104,7 @@ public class ExtractSuperClassUtil {
       final PsiModifierList superClassModifierList = superclass.getModifierList();
       assert superClassModifierList != null;
       //superClassModifierList.setModifierProperty(PsiModifier.FINAL_META, false);
-      //superClassModifierList.setModifierProperty(PsiModifier.PUBLIC, false);
+      //superClassModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, false);
       final PsiReferenceList subClassExtends = subclass.getExtendsList();
       if (subClassExtends != null) {
         copyPsiReferenceList(subClassExtends, superclass.getExtendsList());
@@ -146,7 +147,7 @@ public class ExtractSuperClassUtil {
 
       Collection<MethodSignature> toImplement = OverrideImplementExploreUtil.getMethodSignaturesToImplement(superclass);
       if (!toImplement.isEmpty()) {
-        superClassModifierList.setModifierProperty(PsiModifier.ABSTRACT, true);
+        superClassModifierList.setModifierProperty(HaxePsiModifier.ABSTRACT, true);
       }
       return superclass;
     }

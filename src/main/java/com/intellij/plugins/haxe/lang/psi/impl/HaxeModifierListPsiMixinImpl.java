@@ -26,8 +26,7 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.impl.source.PsiModifierListImpl;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -39,7 +38,7 @@ import java.util.HashMap;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements HaxeModifierListPsiMixin {
+public class HaxeModifierListPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeModifierListPsiMixin {
 
   private final HashMap<String, String> mModifierStatusMap;
 
@@ -48,44 +47,37 @@ public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements
     mModifierStatusMap = new HashMap<String, String>();
   }
 
-  @Override
-  public boolean hasModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name) {
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NotNull @NonNls String name) {
     return mModifierStatusMap.containsKey(name);
   }
 
-  @Override
-  public boolean hasExplicitModifier(@PsiModifier.ModifierConstant @NotNull @NonNls String name) {
+  public boolean hasExplicitModifier(@HaxePsiModifier.ModifierConstant @NotNull @NonNls String name) {
     return mModifierStatusMap.containsKey(name);
   }
 
-  @Override
-  public void setModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
+  public void setModifierProperty(@HaxePsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
     throws IncorrectOperationException {
     mModifierStatusMap.put(name, Boolean.toString(value));
   }
 
-  @Override
-  public void checkSetModifierProperty(@PsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
+  public void checkSetModifierProperty(@HaxePsiModifier.ModifierConstant @NotNull @NonNls String name, boolean value)
     throws IncorrectOperationException {
     // XXX: implement when needed
   }
 
   @NotNull
-  @Override
   public PsiAnnotation[] getAnnotations() {
     // XXX: implement when needed
     return new PsiAnnotation[0];
   }
 
   @NotNull
-  @Override
   public PsiAnnotation[] getApplicableAnnotations() {
     // XXX: implement when needed
     return new PsiAnnotation[0];
   }
 
   @Nullable
-  @Override
   public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
     if (hasModifierProperty(qualifiedName)) {
       String value = mModifierStatusMap.get(qualifiedName);
@@ -97,7 +89,6 @@ public class HaxeModifierListPsiMixinImpl extends PsiModifierListImpl implements
   }
 
   @Nullable
-  @Override
   public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
     mModifierStatusMap.put(qualifiedName, Boolean.TRUE.toString());
     // XXX: implement when needed

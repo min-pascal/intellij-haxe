@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiType;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -33,6 +32,6 @@ public interface HaxeTypePsiMixin extends HaxePsiCompositeElement { //, PsiTypeP
    * @return A usable PsiType corresponding to this type.
    */
   @Nullable
-  public PsiType getPsiType();
+  public Object getPsiType();
 
 }

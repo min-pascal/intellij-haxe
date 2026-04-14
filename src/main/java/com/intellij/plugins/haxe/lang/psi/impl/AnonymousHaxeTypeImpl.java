@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -78,7 +78,7 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
 
   @Nullable
   @Override
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     // NOTE:
     // Avoid dummy nodes (ex. HaxeDummyASTNode) here, it causes problems when PSI tree is changed
     // if a name/identifier is needed try solving it in a model class instead.

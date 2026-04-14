@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.util.RecursionGuard;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
@@ -204,17 +205,17 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     }
 
     if (haxeClass instanceof HaxeEnumDeclaration enumDeclaration) {
-      PsiModifierList list = enumDeclaration.getModifierList();
+      HaxeModifierList list = enumDeclaration.getModifierList();
       _modifiers = new HaxeModifiersModel(list != null ? list : enumDeclaration);
     }
 
     if (haxeClass instanceof HaxeInterfaceDeclaration  interfaceDeclaration) {
-      PsiModifierList list = interfaceDeclaration.getModifierList();
+      HaxeModifierList list = interfaceDeclaration.getModifierList();
       _modifiers = new HaxeModifiersModel(list != null ? list : interfaceDeclaration);
     }
 
     if (haxeClass instanceof HaxeExternInterfaceDeclaration  interfaceDeclaration) {
-      PsiModifierList list = interfaceDeclaration.getModifierList();
+      HaxeModifierList list = interfaceDeclaration.getModifierList();
       _modifiers = new HaxeModifiersModel(list != null ? list : interfaceDeclaration);
     }
 
@@ -602,7 +603,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   @Nullable
-  public PsiIdentifier getNamePsi() {
+  public PsiElement getNamePsi() {
     return haxeClass.getNameIdentifier();
   }
   @NotNull

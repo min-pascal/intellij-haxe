@@ -109,13 +109,13 @@ public class HaxeFile extends PsiFileBase
     return HaxeHierarchyUtils.getClassList(this);
   }
 
-  public PsiPackageStatement getPackageStatement() {
+  public HaxePackageStatement getPackageStatement() {
     ASTNode node = calcTreeElement().findChildByType(HaxeTokenTypes.PACKAGE_STATEMENT);
-    return node != null ? (PsiPackageStatement)node.getPsi() : null;
+    return node != null ? (HaxePackageStatement)node.getPsi() : null;
   }
 
   public String getPackageName() {
-    PsiPackageStatement statement = getPackageStatement();
+    HaxePackageStatement statement = getPackageStatement();
     return statement == null ? "" : statement.getPackageName();
   }
 

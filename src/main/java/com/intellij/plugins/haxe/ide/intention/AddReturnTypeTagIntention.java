@@ -67,7 +67,7 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
 
       String typeText = returnType.isUnknown() ? SpecificTypeReference.VOID : returnType.getType().toPresentationString();
       HaxeTypeTag tag = createTypeTag(project, typeText);
-      PsiParameterList list = method.getParameterList();
+      var list = method.getParameterList();
       PsiElement element = PsiTreeUtil.nextVisibleLeaf(list);
       method.addAfter(tag, element);
     }

@@ -163,7 +163,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
       haxeInterface = model.getPsi();
 
       if (aClass instanceof HaxeClass haxeClass) {
-        final PsiReferenceList referenceList = haxeClass.isInterface() ? haxeClass.getExtendsList() : haxeClass.getImplementsList();
+        final HaxePsiInheritList referenceList = haxeClass.isInterface() ? haxeClass.getExtendsList() : haxeClass.getImplementsList();
         // if the  class / interface does not have extends/ implements lists we need to create these now.
         if (referenceList == null) {
           if (haxeClass.isInterface()) {

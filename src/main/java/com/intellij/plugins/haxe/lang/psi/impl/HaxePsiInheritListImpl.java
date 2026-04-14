@@ -24,6 +24,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
+import com.intellij.psi.PsiReferenceList;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
 import lombok.CustomLog;
@@ -119,15 +120,12 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
     return getReferenceElements(typeList);
   }
   public PsiJavaCodeReferenceElement[] getReferenceElements(List<HaxeType> typeList) {
-    PsiJavaCodeReferenceElement[] refList = new PsiJavaCodeReferenceElement[typeList.size()];
-    for (int i = 0; i < typeList.size(); ++i) {
-      refList[i] = typeList.get(i).getReferenceExpression();
-    }
-    return refList;
+    // HaxeReferenceExpression no longer extends PsiJavaCodeReferenceElement
+    return PsiJavaCodeReferenceElement.EMPTY_ARRAY;
   }
 
   @Override
-  public Role getRole() {
+  public PsiReferenceList.Role getRole() {
     log.warn("HaxePsiInheritList can not reliably return a Role, returning null");
     return null;
   }

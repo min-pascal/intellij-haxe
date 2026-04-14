@@ -194,7 +194,7 @@ public interface HaxeClass extends HaxeComponent, HaxeModelTarget {
   HaxeInheritList getImplementsList();
 
   @Nullable
-  PsiIdentifier getNameIdentifier();
+  PsiElement getNameIdentifier();
 
   @Nullable
   PsiElement getLBrace();

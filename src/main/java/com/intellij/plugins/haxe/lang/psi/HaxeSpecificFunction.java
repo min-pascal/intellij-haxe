@@ -135,7 +135,7 @@ public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implem
 
     // Convert the method parameters into a function argument list.
     List<HaxeFunctionArgument> args = new ArrayList<>();
-    for (PsiParameter param : method.getParameterList().getParameters()) {
+    for (var param : method.getParameterList().getParameters()) {
       args.add(new Argument((HaxeParameter)param));
     }
     return args;

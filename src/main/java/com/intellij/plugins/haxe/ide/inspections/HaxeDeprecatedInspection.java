@@ -30,7 +30,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +74,7 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
     new HaxeAnnotatingVisitor() {
       @Override
       protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
-        PsiIdentifier identifier = referenceExpression.getIdentifier();
+        PsiElement identifier = referenceExpression.getIdentifier();
         result.add(manager.createProblemDescriptor(
           identifier,
           TextRange.from(0, identifier.getTextLength()),

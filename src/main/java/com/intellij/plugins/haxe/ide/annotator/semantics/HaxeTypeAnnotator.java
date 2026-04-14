@@ -12,7 +12,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class HaxeTypeAnnotator implements Annotator {
   }
 
   //TODO mlo : extract to dumbAware?
-  static public void checkValidClassName(final PsiIdentifier identifier, final AnnotationHolder holder) {
+  static public void checkValidClassName(final PsiElement identifier, final AnnotationHolder holder) {
     if (identifier == null) return;
     if (!INVALID_TYPE_NAME.isEnabled(identifier)) return;
 
@@ -133,7 +132,7 @@ public class HaxeTypeAnnotator implements Annotator {
     return haxeClass.getModel().getGenericParams().size();
   }
 
-  private static String getTypeName(PsiIdentifier identifier) {
+  private static String getTypeName(PsiElement identifier) {
     return identifier.getText();
   }
 }

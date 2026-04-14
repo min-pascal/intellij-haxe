@@ -44,9 +44,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.JavaSourceUtil;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.infos.CandidateInfo;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -192,15 +190,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
 
-  @NotNull
-  @Override
-  public JavaResolveResult advancedResolve(boolean incompleteCode) {
+  @Nullable
+  public ResolveResult advancedResolve(boolean incompleteCode) {
     PsiElement resolved = resolve(incompleteCode);
     // get real type for any  import alias
     resolved = tryResolveAlias(resolved);
-    // TODO: Determine if we are using the right substitutor.
-    // ?? XXX: Is the internal element here supposed to be a PsiClass sub-class ??
-    return null != resolved ? new CandidateInfo(resolved, EmptySubstitutor.getInstance()) : JavaResolveResult.EMPTY;
+    return null != resolved ? new PsiElementResolveResult(resolved) : null;
   }
 
   @Nullable
@@ -217,7 +212,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private JavaResolveResult[] multiResolve(boolean incompleteCode, boolean resolveToParents) {
+  private ResolveResult[] multiResolve(boolean incompleteCode, boolean resolveToParents) {
     //
     // Resolving through this.resolve, or through the ResolveCache.resolve,
     // resolves to the *name* of the component.  That's what is cached, that's
@@ -247,9 +242,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     List<? extends PsiElement> cachedNames = doResolve(this, incompleteCode);
 
-    // CandidateInfo does some extra resolution work when checking validity, so
-    // the results have to be turned into a CandidateInfoArray, and not just passed
-    // around as the list that HaxeResolver returns.
     return toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
   }
 
@@ -286,7 +278,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    */
   @NotNull
   @Override
-  public JavaResolveResult[] multiResolve(boolean incompleteCode) {
+  public ResolveResult[] multiResolve(boolean incompleteCode) {
     return multiResolve(incompleteCode, true);
   }
 
@@ -1357,8 +1349,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private void addModuleMemberSuggestions(HaxeReference leftReference, Set<HaxeComponentName> suggestedVariants) {
-    JavaResolveResult[] results = leftReference.multiResolve(true);
-    for (JavaResolveResult result : results) {
+    ResolveResult[] results = leftReference.multiResolve(true);
+    for (ResolveResult result : results) {
       PsiElement element = result.getElement();
 
       if (element instanceof HaxeModule haxeModule) {
@@ -1493,11 +1485,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
-    if (elements == null) return new JavaResolveResult[0];
-    final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
+  private static ResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
+    if (elements == null) return ResolveResult.EMPTY_ARRAY;
+    final ResolveResult[] result = new ResolveResult[elements.size()];
     for (int i = 0, size = elements.size(); i < size; i++) {
-      result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());
+      result[i] = new PsiElementResolveResult(elements.get(i));
     }
     return result;
   }
@@ -1690,7 +1682,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @Nullable
-  @Override
   public PsiReferenceParameterList getParameterList() {
     // TODO:  Unimplemented.
     if (!skipUnimplementedWarnings) {
@@ -1703,7 +1694,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  @Override
   public PsiType[] getTypeParameters() {
     // TODO:  Unimplemented.
     if (!skipUnimplementedWarnings) {
@@ -1719,10 +1709,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @Override
   public String getQualifiedName() {
-    return JavaSourceUtil.getReferenceText(this);
+    return getText();
   }
 
-  @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
     // TODO:  Unimplemented.
     if (!skipUnimplementedWarnings) {
@@ -1747,10 +1736,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   // PsiExpression implementations
 
   @Nullable
-  public PsiType getPsiType() {
+  public Object getPsiType() {
     // XXX: EMB: Not sure about this.  Does a reference really have a sub-node giving the type?
     HaxeType ht = findChildByClass(HaxeType.class);
-    return ((null == ht) ? null : ht.getPsiType());
+    return (null == ht) ? null : ht.getPsiType();
   }
 
   // PsiExpression implementations

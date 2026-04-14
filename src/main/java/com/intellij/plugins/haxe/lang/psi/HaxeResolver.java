@@ -1373,8 +1373,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                   PsiElement resolve = enumReference.resolve();
                   if(resolve instanceof HaxeEnumValueDeclarationConstructor constructor) {
                     HaxeParameterList parameterList = constructor.getParameterList();
-                    PsiParameter parameter = parameterList.getParameter(enumParameterIndex);
-                    if(parameter instanceof HaxeParameterImpl haxeParameter) {
+                    var allParams = parameterList.getParameters();
+                    if(enumParameterIndex < allParams.length && allParams[enumParameterIndex] instanceof HaxeParameterImpl haxeParameter) {
                       return List.of(haxeParameter.getComponentName());
                     }
                   }

@@ -130,7 +130,7 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   private boolean isAbstract(final PsiModifierListOwner owner) {
-    return owner.hasModifierProperty(PsiModifier.ABSTRACT);
+    return owner.hasModifierProperty(HaxePsiModifier.ABSTRACT);
   }
 
   private boolean hasBaseClassMethod(final PsiElement element) {

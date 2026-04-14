@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.hierarchy;
 
 import com.intellij.codeInsight.TargetElementUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.codeInsight.TargetElementUtilBase;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -416,7 +417,7 @@ public class HaxeHierarchyUtils {
     final PsiClass parentClass = method.getContainingClass();
     return parentClass == null
            || method.isConstructor()
-           || method.hasModifierProperty(PsiModifier.STATIC);
+           || method.hasModifierProperty(HaxePsiModifier.STATIC);
   }
 
   public static List<HaxeComponentName> findMembersByWalkingTree(@NotNull PsiElement element) {

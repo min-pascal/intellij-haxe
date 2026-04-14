@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.psi.PsiAnonymousClass;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ExtensibleQueryFactory;
 import com.intellij.psi.search.searches.OverridingMethodsSearch;
@@ -76,7 +76,7 @@ public class HaxeMethodsSearch extends ExtensibleQueryFactory<PsiMethod, HaxeMet
     final PsiClass parentClass = method.getContainingClass();
     return parentClass == null
            || method.isConstructor()
-           || method.hasModifierProperty(PsiModifier.STATIC)
+           || method.hasModifierProperty(HaxePsiModifier.STATIC)
            || parentClass instanceof PsiAnonymousClass;
   }
 

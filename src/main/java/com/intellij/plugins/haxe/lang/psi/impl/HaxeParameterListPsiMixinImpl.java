@@ -41,7 +41,6 @@ public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl i
   }
 
   @NotNull
-  @Override
   public HaxeParameterPsiMixinImpl[] getParameters() {
     HaxeParameterPsiMixinImpl[] psiParameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameterPsiMixinImpl.class, null);
     if (psiParameters == null) {
@@ -58,12 +57,14 @@ public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl i
     return Arrays.asList(parameters);
   }
 
-  @Override
   public int getParameterIndex(PsiParameter parameter) {
-    return PsiImplUtil.getParameterIndex(parameter, this);
+    HaxeParameterPsiMixinImpl[] params = getParameters();
+    for (int i = 0; i < params.length; i++) {
+      if (params[i] == parameter) return i;
+    }
+    return -1;
   }
 
-  @Override
   public int getParametersCount() {
     HaxeParameterPsiMixinImpl[] params = getParameters();
     return params == null ? 0 : getParameters().length;

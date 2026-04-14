@@ -25,6 +25,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
@@ -97,7 +98,7 @@ public class PullUpConflictsUtil {
     final Set<PsiMethod> abstrMethods = new HashSet<PsiMethod>(abstractMethods);
     if (superClass != null) {
       for (PsiMethod method : subclass.getMethods()) {
-        if (!movedMembers.contains(method) && !method.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!movedMembers.contains(method) && !method.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
           if (method.findSuperMethods(superClass).length > 0) {
             abstrMethods.add(method);
           }
@@ -126,7 +127,7 @@ public class PullUpConflictsUtil {
       } else {
         final String qualifiedName = superClass.getQualifiedName();
         assert qualifiedName != null;
-        if (superClass.hasModifierProperty(PsiModifier.PACKAGE_LOCAL)) {
+        if (superClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
           if (!Comparing.strEqual(StringUtil.getPackageName(qualifiedName), targetPackage.getQualifiedName())) {
             conflicts.putValue(superClass, RefactoringUIUtil.getDescription(superClass, true) + " won't be accessible from " +RefactoringUIUtil.getDescription(targetPackage, true));
           }
@@ -172,10 +173,10 @@ public class PullUpConflictsUtil {
         protected void visitClassMemberReferenceElement(PsiMember classMember, PsiJavaCodeReferenceElement classMemberReference) {
           if (classMember != null && willBeMoved(classMember, movedMembers)) {
             boolean isAccessible = false;
-            if (classMember.hasModifierProperty(PsiModifier.PRIVATE)) {
+            if (classMember.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
               isAccessible = true;
             }
-            else if (classMember.hasModifierProperty(PsiModifier.PACKAGE_LOCAL) &&
+            else if (classMember.hasModifierProperty(HaxePsiModifier.PRIVATE) &&
                      toDifferentPackage) {
               isAccessible = true;
             }
@@ -190,7 +191,7 @@ public class PullUpConflictsUtil {
           }
         }
       });
-      if (abstractMethod.hasModifierProperty(PsiModifier.PACKAGE_LOCAL) && toDifferentPackage) {
+      if (abstractMethod.hasModifierProperty(HaxePsiModifier.PRIVATE) && toDifferentPackage) {
         if (!isInterfaceTarget) {
           String message = "Can't make " + RefactoringUIUtil.getDescription(abstractMethod, false) +
                            " abstract as it won't be accessible from the subclass.";
@@ -218,7 +219,7 @@ public class PullUpConflictsUtil {
 
       if (member instanceof PsiField || member instanceof PsiClass) {
 
-        if (!((PsiModifierListOwner)member).hasModifierProperty(PsiModifier.STATIC)
+        if (!((PsiModifierListOwner)member).hasModifierProperty(HaxePsiModifier.STATIC)
             && !(member instanceof PsiClass && ((PsiClass)member).isInterface())) {
           String message =
             HaxeRefactoringBundle.message("0.is.not.static.it.cannot.be.moved.to.the.interface", RefactoringUIUtil.getDescription(member, false));
@@ -264,7 +265,7 @@ public class PullUpConflictsUtil {
       if (member instanceof PsiMethod) {
         final PsiMethod method = (PsiMethod)member;
         final PsiModifierList modifierList = method.getModifierList();
-        if (!modifierList.hasModifierProperty(PsiModifier.PRIVATE)) {
+        if (!modifierList.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
             Collection<PsiClass> search = ClassInheritorsSearch.search(superClass).findAll();
             for (PsiClass subClass : search) {
             if (method.getContainingClass() != subClass) {
@@ -317,10 +318,10 @@ public class PullUpConflictsUtil {
         final PsiClass containingClass = classMember.getContainingClass();
         if (containingClass != null) {
           if (!PsiUtil.isAccessibleFromPackage(classMember, myTargetPackage)) {
-            if (classMember.hasModifierProperty(PsiModifier.PACKAGE_LOCAL)) {
+            if (classMember.hasModifierProperty(HaxePsiModifier.PRIVATE)) {
               myConflicts.putValue(myMember, RefactoringUIUtil.getDescription(classMember, true) + " won't be accessible");
             }
-            else if (classMember.hasModifierProperty(PsiModifier.PROTECTED) && !mySubClass.isInheritor(containingClass, true)) {
+            else if (classMember.hasModifierProperty(HaxePsiModifier.PRIVATE) && !mySubClass.isInheritor(containingClass, true)) {
               myConflicts.putValue(myMember, RefactoringUIUtil.getDescription(classMember, true) + " won't be accessible");
             }
           }
@@ -359,7 +360,7 @@ public class PullUpConflictsUtil {
                                                     PsiJavaCodeReferenceElement classMemberReference) {
       if (classMember != null
           && RefactoringHierarchyUtil.isMemberBetween(mySuperClass, mySubclass, classMember)) {
-        if (classMember.hasModifierProperty(PsiModifier.STATIC)
+        if (classMember.hasModifierProperty(HaxePsiModifier.STATIC)
             && !willBeMoved(classMember, myMovedMembers)) {
           final boolean isAccessible;
           if (mySuperClass != null) {
@@ -369,7 +370,7 @@ public class PullUpConflictsUtil {
             isAccessible = PsiUtil.isAccessibleFromPackage(classMember, myTargetPackage);
           }
           else {
-            isAccessible = classMember.hasModifierProperty(PsiModifier.PUBLIC);
+            isAccessible = classMember.hasModifierProperty(HaxePsiModifier.PUBLIC);
           }
           if (!isAccessible) {
             String message = RefactoringBundle.message("0.uses.1.which.is.not.accessible.from.the.superclass",

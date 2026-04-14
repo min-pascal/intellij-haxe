@@ -19,7 +19,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.impl.ApplicationImpl;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiToken;
-import com.intellij.psi.impl.source.tree.java.PsiJavaTokenImpl;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 
 /**
@@ -29,7 +29,7 @@ import com.intellij.psi.tree.IElementType;
  *
  * Created by ebishton on 4/26/17.
  */
-public class HaxePsiTokenImpl extends PsiJavaTokenImpl implements HaxePsiToken {
+public class HaxePsiTokenImpl extends LeafPsiElement implements HaxePsiToken {
 
   public HaxePsiTokenImpl(IElementType type, CharSequence text) {
     super(type, text);

@@ -20,21 +20,23 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiManagerEx;
-import com.intellij.psi.impl.source.PsiReferenceListImpl;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiReferenceList {
+public class HaxePsiReferenceList extends HaxePsiCompositeElementImpl implements HaxePsiInheritList {
 
-  private Role mRole;
+  private PsiReferenceList.Role mRole;
   private HaxeClass mContainingClass;
   private List<PsiElement> mChildren;
 
@@ -45,7 +47,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
     mChildren = new ArrayList<PsiElement>();
   }
 
-  public HaxePsiReferenceList(PsiClass containingClass, ASTNode node, Role inRole) {
+  public HaxePsiReferenceList(PsiClass containingClass, ASTNode node, PsiReferenceList.Role inRole) {
     super(node);
     mRole = inRole;
     mContainingClass = (HaxeClass) containingClass;
@@ -53,8 +55,7 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   }
 
   @Override
-  @NotNull
-  public Role getRole() {
+  public PsiReferenceList.Role getRole() {
     return mRole;
   }
 
@@ -78,13 +79,13 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
-    if (null == mRole) return super.getReferenceElements();
+    if (null == mRole) return PsiJavaCodeReferenceElement.EMPTY_ARRAY;
     if (mRole.equals(PsiReferenceList.Role.EXTENDS_LIST) ||
         mRole.equals(PsiReferenceList.Role.IMPLEMENTS_LIST)) {
       PsiJavaCodeReferenceElement[] array = new PsiJavaCodeReferenceElement[mChildren.size()];
       return mChildren.toArray(array); // XXX: WARNING: Casting error may occur!
     }
-    return super.getReferenceElements();
+    return PsiJavaCodeReferenceElement.EMPTY_ARRAY;
   }
 
   @NotNull
@@ -126,5 +127,21 @@ public class HaxePsiReferenceList extends PsiReferenceListImpl implements PsiRef
   @Override
   public PsiFile getContainingFile() {
     return mContainingClass.getContainingFile();
+  }
+
+  @NotNull
+  @Override
+  public List<HaxeType> getTypeList() {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public PsiClassType @NotNull [] getReferencedImplements() {
+    return PsiClassType.EMPTY_ARRAY;
+  }
+
+  @Override
+  public PsiClassType @NotNull [] getReferencedExtends() {
+    return PsiClassType.EMPTY_ARRAY;
   }
 }

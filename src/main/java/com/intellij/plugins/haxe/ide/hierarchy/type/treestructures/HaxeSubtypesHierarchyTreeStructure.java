@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;

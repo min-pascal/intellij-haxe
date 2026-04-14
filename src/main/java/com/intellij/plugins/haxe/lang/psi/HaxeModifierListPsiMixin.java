@@ -17,11 +17,29 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by ebishton on 10/1/14.
+ * Provides modifier list functionality.
  */
-public interface HaxeModifierListPsiMixin extends HaxePsiCompositeElement, PsiModifierList {
+public interface HaxeModifierListPsiMixin extends HaxePsiCompositeElement {
 
+  boolean hasModifierProperty(@NotNull String name);
+
+  boolean hasExplicitModifier(@NotNull String name);
+
+  void setModifierProperty(@NotNull String name, boolean value) throws IncorrectOperationException;
+
+  void checkSetModifierProperty(@NotNull String name, boolean value) throws IncorrectOperationException;
+
+  PsiAnnotation[] getAnnotations();
+
+  PsiAnnotation[] getApplicableAnnotations();
+
+  PsiAnnotation findAnnotation(@NotNull String qualifiedName);
+
+  PsiAnnotation addAnnotation(@NotNull String qualifiedName);
 }

@@ -21,8 +21,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeListPart;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiTypeParameter;
-
 /**
  * Created by ebishton on 10/18/14.
  */
@@ -32,15 +30,13 @@ public class HaxeTypeParamPsiMixinImpl extends HaxePsiCompositeElementImpl imple
     super(node);
   }
 
-  @Override
-  public PsiTypeParameter[] getTypeParameters() {
+  public HaxeTypeListPart[] getTypeParameters() {
     HaxeTypeListPart[] parts = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeTypeListPart.class, null);
-    return null != parts ? parts : new PsiTypeParameter[0];
+    return null != parts ? parts : new HaxeTypeListPart[0];
   }
 
-  @Override
-  public int getTypeParameterIndex(PsiTypeParameter typeParameter) {
-    PsiTypeParameter[] params = getTypeParameters();
+  public int getTypeParameterIndex(HaxeTypeListPart typeParameter) {
+    HaxeTypeListPart[] params = getTypeParameters();
     int i = 0;
     for (; i < params.length; ++i) {
       if (typeParameter == params[i]) {

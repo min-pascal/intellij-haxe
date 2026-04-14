@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.ide.intention;
 
 import com.intellij.codeInsight.intention.impl.BaseIntentionAction;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeLanguage;

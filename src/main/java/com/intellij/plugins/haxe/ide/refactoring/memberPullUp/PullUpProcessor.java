@@ -25,6 +25,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 
 import com.intellij.analysis.AnalysisScope;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.lang.Language;
 import com.intellij.lang.findUsages.DescriptiveNameUtil;
 import com.intellij.openapi.application.ApplicationManager;
@@ -91,7 +92,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
     final List<UsageInfo> result = new ArrayList<UsageInfo>();
     for (MemberInfo memberInfo : myMembersToMove) {
       final PsiMember member = memberInfo.getMember();
-      if (member.hasModifierProperty(PsiModifier.STATIC)) {
+      if (member.hasModifierProperty(HaxePsiModifier.STATIC)) {
         Collection<PsiReference> references = ReferencesSearch.search(member).findAll();
         for (PsiReference reference : references) {
           result.add(new UsageInfo(reference));

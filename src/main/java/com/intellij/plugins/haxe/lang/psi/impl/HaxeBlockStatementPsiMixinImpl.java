@@ -19,11 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaToken;
-import com.intellij.psi.PsiStatement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 10/16/14.
@@ -32,46 +27,5 @@ public class HaxeBlockStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl im
 
   public HaxeBlockStatementPsiMixinImpl(ASTNode node) {
     super(node);
-  }
-
-  @NotNull
-  @Override
-  public PsiStatement[] getStatements() {
-    // TODO: Implement
-    return new PsiStatement[0];
-  }
-
-  @Nullable
-  @Override
-  public PsiElement getFirstBodyElement() {
-    // TODO: Implement
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiElement getLastBodyElement() {
-    // TODO: Implement
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiJavaToken getLBrace() {
-    // TODO: Implement
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public PsiJavaToken getRBrace() {
-    // TODO: Implement
-    return null;
-  }
-
-  @Override
-  public boolean shouldChangeModificationCount(PsiElement place) {
-    // TODO: Implement
-    return false;
   }
 }

@@ -17,11 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiCodeBlock;
-
 /**
  * Created by ebishton on 10/16/14.
  */
-public interface HaxeBlockStatementPsiMixin extends HaxeStatementPsiMixin, PsiCodeBlock, HaxeCodeBlock {
+public interface HaxeBlockStatementPsiMixin extends HaxeStatementPsiMixin, HaxeCodeBlock {
 
 }

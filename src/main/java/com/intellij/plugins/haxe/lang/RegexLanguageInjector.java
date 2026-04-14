@@ -36,10 +36,14 @@ public class RegexLanguageInjector implements LanguageInjector {
 
   @Override
   public void getLanguagesToInject(@NotNull PsiLanguageInjectionHost host, @NotNull InjectedLanguagePlaces injectionPlacesRegistrar) {
-    if (host instanceof HaxeRegularExpression) {
-      final String text = host.getText();
-      final TextRange textRange = new TextRange(text.indexOf('/') + 1, text.lastIndexOf('/'));
-      injectionPlacesRegistrar.addPlace(EcmaScriptRegexpLanguage.INSTANCE, textRange, null, null);
+    try {
+      if (host instanceof HaxeRegularExpression) {
+        final String text = host.getText();
+        final TextRange textRange = new TextRange(text.indexOf('/') + 1, text.lastIndexOf('/'));
+        injectionPlacesRegistrar.addPlace(EcmaScriptRegexpLanguage.INSTANCE, textRange, null, null);
+      }
+    } catch (NoClassDefFoundError e) {
+      // Java PSI types not available (e.g. running in WebStorm without Java plugin)
     }
   }
 }

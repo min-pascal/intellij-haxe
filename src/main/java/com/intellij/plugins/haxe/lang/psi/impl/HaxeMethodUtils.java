@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.psi.search.searches.DeepestSuperMethodsSearch;
 import com.intellij.psi.search.searches.SuperMethodsSearch;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
@@ -45,7 +45,7 @@ public class HaxeMethodUtils {
   private static boolean canHaveSuperMethod(PsiMethod method, boolean allowStaticMethod) {
     // Private really means protected in Haxe, so this version skips the private test.
     if (null == method || method.isConstructor()) return false;
-    if (!allowStaticMethod && method.hasModifierProperty(PsiModifier.STATIC)) return false;
+    if (!allowStaticMethod && method.hasModifierProperty(HaxePsiModifier.STATIC)) return false;
     PsiClass parentClass = method.getContainingClass();
     return parentClass != null;
   }

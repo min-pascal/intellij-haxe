@@ -17,15 +17,16 @@
  */
 package com.intellij.plugins.haxe.ide.module;
 
+import com.intellij.ide.util.projectWizard.ModuleBuilder;
 import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.projectRoots.SdkType;
 
 
 public class HaxeSdkWizardStep extends ProjectJdkForModuleStep {
-  private HaxeModuleBuilder myModuleBuilder;
+  private ModuleBuilder myModuleBuilder;
 
-  public HaxeSdkWizardStep(HaxeModuleBuilder moduleBuilder, WizardContext context, SdkType type) {
+  public HaxeSdkWizardStep(ModuleBuilder moduleBuilder, WizardContext context, SdkType type) {
     super(context, type);
     myModuleBuilder = moduleBuilder;
   }

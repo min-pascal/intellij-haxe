@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.memberPushDown;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -148,7 +149,7 @@ public class PushDownConflicts {
       /*
       final PsiModifierList modifierList = movedMember.getModifierList();
       assert modifierList != null;
-      if (!modifierList.hasModifierProperty(PsiModifier.ABSTRACT)) {
+      if (!modifierList.hasModifierProperty(HaxePsiModifier.ABSTRACT)) {
         PsiMethod method = (PsiMethod)movedMember;
         final PsiMethod overrider = targetClass.findMethodBySignature(method, false);
         if (overrider != null) {

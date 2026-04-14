@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.codeInsight.completion.JavaCompletionUtil;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;

@@ -17,8 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierListOwner;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,12 +24,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by ebishton on 10/2/14.
  */
-public interface HaxeModifierListOwner extends PsiModifierListOwner {
+public interface HaxeModifierListOwner {
 
   @Nullable
-  @Override
   HaxeModifierList getModifierList();
 
-  @Override
-  boolean hasModifierProperty(@PsiModifier.ModifierConstant @NonNls @NotNull String name);
+  boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name);
 }

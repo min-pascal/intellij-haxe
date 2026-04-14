@@ -81,7 +81,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   public String getName() {
     String name = super.getName();
     if (null == name) {
-      final PsiIdentifier nameIdentifier = getNameIdentifier();
+      final PsiElement nameIdentifier = getNameIdentifier();
       if (nameIdentifier != null) {
         name = nameIdentifier.getText();
       }
@@ -102,12 +102,12 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Override
   @Nullable
   public HaxeComponentName getComponentName() {
-    final PsiIdentifier identifier = getNameIdentifier();
+    final PsiElement identifier = getNameIdentifier();
     return identifier != null ? new HaxeComponentNameImpl(getNode()) : null;
   }
 
   @Nullable
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     final HaxeComponentName compName = PsiTreeUtil.getChildOfType(this, HaxeComponentName.class);
     return compName != null ? PsiTreeUtil.getChildOfType(compName, HaxeIdentifier.class) : null;
   }

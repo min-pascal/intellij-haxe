@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiReferenceList;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +27,7 @@ import java.util.List;
 /**
  * Created by ebishton on 10/9/14.
  */
-public interface HaxePsiInheritList extends HaxePsiCompositeElement, PsiReferenceList{
+public interface HaxePsiInheritList extends HaxePsiCompositeElement {
 
   @NotNull
   List<HaxeType> getTypeList();
@@ -35,5 +36,12 @@ public interface HaxePsiInheritList extends HaxePsiCompositeElement, PsiReferenc
 
   PsiClassType @NotNull [] getReferencedExtends();
 
+  @NotNull
+  PsiJavaCodeReferenceElement[] getReferenceElements();
+
+  @NotNull
+  PsiClassType[] getReferencedTypes();
+
+  PsiReferenceList.Role getRole();
 
 }

@@ -20,8 +20,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -33,22 +31,11 @@ abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStatementPsiM
   }
 
   @Override
-  public PsiJavaCodeReferenceElement getPackageReference() {
-    return findChildByClass(HaxeReferenceExpression.class);
-  }
-
-  @Override
   public String getPackageName() {
     HaxeReferenceExpression ref = findChildByClass(HaxeReferenceExpression.class);
     if (null!= ref) {
       return ref.getQualifiedName();
     }
     return "";
-  }
-
-  @Override
-  public PsiModifierList getAnnotationList() {
-    // The Haxe BNF we're using doesn't allow for any annotations on package statements.
-    return null;
   }
 }

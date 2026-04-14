@@ -23,7 +23,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
-import com.intellij.psi.PsiType;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,8 +43,13 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
 
   @Nullable
   @Override
-  public PsiType getPsiType() {
-    return (this instanceof HaxeType) ? new HaxePsiTypeAdapter((HaxeType)this) : null;
+  public Object getPsiType() {
+    if (!(this instanceof HaxeType)) return null;
+    try {
+      return new HaxePsiTypeAdapter((HaxeType) this);
+    } catch (NoClassDefFoundError e) {
+      return null;
+    }
   }
 
   //@Override

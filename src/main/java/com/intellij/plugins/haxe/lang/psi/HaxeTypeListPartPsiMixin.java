@@ -17,11 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiTypeParameter;
-
 /**
  * Created by ebishton on 10/22/14.
  */
-public interface HaxeTypeListPartPsiMixin extends HaxePsiCompositeElement, PsiTypeParameter {
+public interface HaxeTypeListPartPsiMixin extends HaxePsiCompositeElement {
 
 }

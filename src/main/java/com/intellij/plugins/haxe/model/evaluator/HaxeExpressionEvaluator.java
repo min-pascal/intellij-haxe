@@ -155,7 +155,7 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled())log.debug("Handling element: " + element);
 
-    if (element instanceof PsiCodeBlock codeBlock) {
+    if (element instanceof HaxeCodeBlock codeBlock) {
       return handleCodeBlock(context, resolver, codeBlock);
     }
 
@@ -163,7 +163,7 @@ public class HaxeExpressionEvaluator {
       return handleImportAlias(context, resolver, alias);
     }
     // attempt at reducing unnecessary if checks by grouping psi types by their parent type
-    if (element instanceof PsiStatement) {
+    if (element instanceof HaxeStatementPsiMixin) {
 
       if (element instanceof HaxeReturnStatement returnStatement) {
         return handleReturnStatement(context, resolver, returnStatement);

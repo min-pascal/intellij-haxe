@@ -301,7 +301,6 @@ public class HaxeEnumExtractorModel implements HaxeModel {
           int argumentIndex = model.findArgumentIndex(ref, true);
           if (argumentIndex != -1) {
             if(model.getEnumValueModel() instanceof HaxeEnumValueConstructorModel constructorModel) {
-              PsiParameter parameter = constructorModel.getConstructorParameters().getParameter(argumentIndex);
               parentsToResolve.add( new ExtractorHierarchyElement(HierarchyType.ENUM_VALUE, argumentIndex, constructorModel));
             }
           }

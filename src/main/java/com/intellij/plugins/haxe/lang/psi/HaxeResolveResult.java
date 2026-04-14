@@ -26,10 +26,8 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
-import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.SmartList;
 import lombok.CustomLog;
@@ -586,23 +584,6 @@ public class HaxeResolveResult implements Cloneable {
       builder.append('>');
     }
     return builder.toString();
-  }
-
-  public JavaResolveResult toJavaResolveResult() {
-    return new JavaResult(this);
-  }
-
-  private static class JavaResult implements JavaResolveResult {
-    private HaxeResolveResult originalResult = null;
-    public JavaResult(HaxeResolveResult result) { originalResult = result; }
-    @Override public PsiElement getElement() { return (originalResult != null ? originalResult.getHaxeClass() : null); }
-    @NotNull
-    @Override public PsiSubstitutor getSubstitutor() { return PsiSubstitutor.EMPTY; }
-    @Override public boolean isValidResult() { return null != this.getElement(); }
-    @Override public boolean isAccessible() { return true; }
-    @Override public boolean isStaticsScopeCorrect() { return true; } // TODO: How to check scope?
-    @Override public PsiElement getCurrentFileResolveScope() { return (this.getElement() != null ? this.getElement().getOriginalElement() : null); } // TODO: Verify
-    @Override public boolean isPackagePrefixPackageReference() { return false; }  // TODO: No idea what to do with this.
   }
 
 }

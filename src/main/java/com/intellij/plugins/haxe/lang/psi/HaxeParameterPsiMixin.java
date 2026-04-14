@@ -17,11 +17,11 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiElement;
 
 /**
  * Created by ebishton on 9/27/14.
  */
-public interface HaxeParameterPsiMixin extends HaxeComponent, PsiParameter {
-
+public interface HaxeParameterPsiMixin extends HaxeComponent {
+    PsiElement getDeclarationScope();
 }

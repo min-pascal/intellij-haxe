@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractInterface;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -74,16 +75,16 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
     return MemberInfo.extractClassMembers(c, new MemberInfoBase.Filter<PsiMember>() {
       public boolean includeMember(PsiMember element) {
         if (element instanceof PsiMethod) {
-          return element.hasModifierProperty(PsiModifier.PUBLIC)
-                 && !element.hasModifierProperty(PsiModifier.STATIC);
+          return element.hasModifierProperty(HaxePsiModifier.PUBLIC)
+                 && !element.hasModifierProperty(HaxePsiModifier.STATIC);
         }
         else if (element instanceof PsiField) {
-          return element.hasModifierProperty(PsiModifier.FINAL)
-                 && element.hasModifierProperty(PsiModifier.STATIC)
-                 && element.hasModifierProperty(PsiModifier.PUBLIC);
+          return element.hasModifierProperty(HaxePsiModifier.FINAL)
+                 && element.hasModifierProperty(HaxePsiModifier.STATIC)
+                 && element.hasModifierProperty(HaxePsiModifier.PUBLIC);
         }
         else if (element instanceof PsiClass) {
-          return ((PsiClass)element).isInterface() || element.hasModifierProperty(PsiModifier.STATIC);
+          return ((PsiClass)element).isInterface() || element.hasModifierProperty(HaxePsiModifier.STATIC);
         }
         return false;
       }

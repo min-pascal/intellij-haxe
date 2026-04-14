@@ -173,7 +173,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   }
 
   @Nullable
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     final HaxeComponentName componentName = getComponentName();
     return componentName != null ? componentName.getIdentifier() : null;
   }

@@ -19,18 +19,30 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiPolyVariantReference;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeReference extends HaxeExpression, HaxeClassResolvable, PsiJavaCodeReferenceElement {
-
+public interface HaxeReference extends HaxeExpression, HaxeClassResolvable, PsiPolyVariantReference {
 
   @Nullable
-  PsiType getPsiType();
+  String getReferenceName();
+
+  @Nullable
+  String getQualifiedName();
+
+  boolean isQualified();
+
+  @Nullable
+  PsiElement getQualifier();
+
+  @Nullable
+  PsiElement getReferenceNameElement();
+
+  @Nullable
+  Object getPsiType();
 
   @Nullable
   PsiElement resolveToComponentName();

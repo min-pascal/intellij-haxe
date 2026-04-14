@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 
 import com.intellij.openapi.help.HelpManager;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
@@ -185,7 +186,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
       PsiElement element = member.getMember();
       if (element instanceof PsiClass && ((PsiClass) element).isInterface()) return true;
       if (element instanceof PsiField) {
-        return ((PsiModifierListOwner) element).hasModifierProperty(PsiModifier.STATIC);
+        return ((PsiModifierListOwner) element).hasModifierProperty(HaxePsiModifier.STATIC);
       }
       if (element instanceof PsiMethod) {
         final PsiSubstitutor superSubstitutor = TypeConversionUtil
@@ -193,7 +194,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
         final MethodSignature signature = ((PsiMethod) element).getSignature(superSubstitutor);
         final PsiMethod superClassMethod = MethodSignatureUtil.findMethodBySignature(currentSuperClass, signature, false);
         if (superClassMethod != null && !PsiUtil.isLanguageLevel8OrHigher(currentSuperClass)) return false;
-        return !((PsiModifierListOwner) element).hasModifierProperty(PsiModifier.STATIC) || PsiUtil.isLanguageLevel8OrHigher(currentSuperClass);
+        return !((PsiModifierListOwner) element).hasModifierProperty(HaxePsiModifier.STATIC) || PsiUtil.isLanguageLevel8OrHigher(currentSuperClass);
       }
       return true;
     }
@@ -213,7 +214,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
       if (currentSuperClass.isInterface()) {
         final PsiMember psiMember = member.getMember();
         if (psiMember instanceof PsiMethod) {
-          return !psiMember.hasModifierProperty(PsiModifier.STATIC);
+          return !psiMember.hasModifierProperty(HaxePsiModifier.STATIC);
         }
       }
       return false;
@@ -224,7 +225,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
       PsiClass currentSuperClass = getSuperClass();
       if (currentSuperClass != null && currentSuperClass.isInterface()) {
         PsiMember element = member.getMember();
-        if (element.hasModifierProperty(PsiModifier.STATIC)) {
+        if (element.hasModifierProperty(HaxePsiModifier.STATIC)) {
           return super.checkForProblems(member);
         }
         return OK;

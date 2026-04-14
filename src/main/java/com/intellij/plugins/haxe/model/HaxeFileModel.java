@@ -22,7 +22,6 @@ import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import org.apache.commons.lang3.StringUtils;
@@ -118,7 +117,7 @@ public class HaxeFileModel implements HaxeExposableModel {
       HaxeClass haxeClass = (HaxeClass)Arrays.stream(module.getChildren())
         .filter(element -> {
           if (element instanceof HaxeClass hxClass) {
-            PsiIdentifier identifier = hxClass.getNameIdentifier();
+            PsiElement identifier = hxClass.getNameIdentifier();
             return identifier != null && identifier.textMatches(name);
           }
           return false;

@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;

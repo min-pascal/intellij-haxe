@@ -17,10 +17,13 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiParameterList;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl;
 
 /**
  * Created by ebishton on 9/27/14.
  */
-public interface HaxeParameterListPsiMixin extends HaxePsiCompositeElement, PsiParameterList {
+public interface HaxeParameterListPsiMixin extends HaxePsiCompositeElement {
+    HaxeParameterPsiMixinImpl[] getParameters();
+    int getParametersCount();
+    default boolean isEmpty() { return getParametersCount() == 0; }
 }

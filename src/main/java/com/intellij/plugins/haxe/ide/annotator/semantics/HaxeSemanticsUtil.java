@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;

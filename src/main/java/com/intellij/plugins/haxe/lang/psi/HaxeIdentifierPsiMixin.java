@@ -18,11 +18,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiIdentifier;
-
 /**
  * Created by ebishton on 9/27/14.
  */
-public interface HaxeIdentifierPsiMixin extends HaxePsiCompositeElement, PsiIdentifier {
+public interface HaxeIdentifierPsiMixin extends HaxePsiCompositeElement {
   public boolean isMatchAny();
 }

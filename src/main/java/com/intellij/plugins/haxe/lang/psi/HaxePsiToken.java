@@ -15,7 +15,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.tree.IElementType;
 
 /**
  * Currently, simply allows Haxe to emulate Java.  We use the Java token
@@ -24,6 +25,6 @@ import com.intellij.psi.PsiJavaToken;
  *
  * Created by ebishton on 4/26/17.
  */
-public interface HaxePsiToken extends PsiJavaToken {
-
+public interface HaxePsiToken extends PsiElement {
+  IElementType getTokenType();
 }

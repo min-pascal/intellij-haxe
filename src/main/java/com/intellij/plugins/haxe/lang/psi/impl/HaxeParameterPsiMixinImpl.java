@@ -41,15 +41,10 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     super(node);
   }
 
-  public HaxeParameterPsiMixinImpl(PsiParameter parameter) {
-    super(parameter.getNode());
-  }
-
   public HaxeParameterPsiMixinImpl(HaxeParameter parameter) {
     super(parameter.getNode());
   }
 
-  @Override
   @NotNull
   public PsiElement getDeclarationScope() {
     // Lifted, lock, stock, and barrel from PsiParameterImpl.java
@@ -59,7 +54,7 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     final PsiElement parent = getParent();
     if (parent == null) return this;
 
-    if (parent instanceof PsiParameterList) {
+    if (parent instanceof HaxeParameterListPsiMixin) {
       return parent.getParent();
     }
 
@@ -77,7 +72,7 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
       for (int i = 0; i < children.length; i++) {
         if (children[i].equals(this)) {
           for (int j = i + 1; j < children.length; j++) {
-            if (children[j] instanceof PsiCodeBlock) return children[j];
+            if (children[j] instanceof HaxeCodeBlock) return children[j];
           }
           break ext;
         }
@@ -88,7 +83,6 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     return null;
   }
 
-  @Override
   public boolean isVarArgs() {
     // In Haxe (http://old.haxe.org/doc/cross/reflect), there are no
     // varargs parameters, but the function is made to accept variable
@@ -97,63 +91,13 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   }
 
   @Nullable
-  @Override
-  public PsiTypeElement getTypeElement() {
-    // Lifted, lock, stock, and barrel from PsiParameterImpl.java
-    // which was for the Java language.
-    // TODO: Broken.  Needs re-implementation.
-    //       Need to verify against the Haxe language spec.
-    //              Are there other situations?
-    // XXX: This won't work.  The children are further down the tree, not at the child level.
-    for (PsiElement child = getFirstChild(); child != null; child = child.getNextSibling()) {
-      if (child instanceof PsiTypeElement) {
-        //noinspection unchecked
-        return (PsiTypeElement)child;
-      }
-    }
-
-    // PsiTypeElement t = (HaxeType) PsiTreeUtil.findChildOfType(this, HaxeType.class);
-
-    return null;
-  }
-
-  @NotNull
-  @Override
-  public PsiType getType() {
-    // The Haxe language variable type (int, float, etc.), not the psi token type.
-    PsiTypeElement el = getTypeElement();
-    PsiType type = null != el ? el.getType() :  PsiTypes.voidType();
-    return null != type ? type : PsiTypes.voidType();
-  }
-
-  @Nullable
-  @Override
-  public PsiExpression getInitializer() {
-    // XXX: this may need to be implemented for refactoring functionality
-    return null;
-  }
-
-  @Override
-  public boolean hasInitializer() {
-    // XXX: this may need to be implemented for refactoring functionality
-    return false;
-  }
-
-  @Override
-  public void normalizeDeclaration() throws IncorrectOperationException {
-    // XXX: this may need to be implemented for refactoring functionality
-  }
-
-  @Nullable
-  @Override
   public Object computeConstantValue() {
     // XXX: this may need to be implemented for refactoring functionality
     return null;
   }
 
   @Nullable
-  @Override
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     final HaxeComponentName componentName = getComponentName();
     return componentName != null ? componentName.getIdentifier() : null;
   }

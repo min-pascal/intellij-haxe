@@ -18,14 +18,13 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiModifier;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NonNls;
 
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
+public interface HaxePsiModifier extends HaxePsiCompositeElement {
 
   @NonNls String PUBLIC = "public";
   @NonNls String PRIVATE = "private";

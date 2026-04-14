@@ -17,11 +17,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.psi.PsiStatement;
-
 /**
  * Created by ebishton on 10/17/14.
  */
-public interface HaxeStatementPsiMixin extends HaxePsiCompositeElement, PsiStatement {
+public interface HaxeStatementPsiMixin extends HaxePsiCompositeElement {
 
 }

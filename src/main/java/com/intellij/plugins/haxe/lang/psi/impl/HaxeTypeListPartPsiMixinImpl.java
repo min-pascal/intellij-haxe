@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -131,14 +130,12 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   // PsiTypeParameter overrides
   //
 
-  @Override
   public PsiTypeParameterListOwner getOwner() {
     final PsiElement parent = getParent();
     if (parent == null) throw new PsiInvalidElementAccessException(this);
     return PsiTreeUtil.getParentOfType(this, PsiTypeParameterListOwner.class);
   }
 
-  @Override
   public int getIndex() {
     int ret = 0;
     PsiElement element = getPrevSibling();
@@ -157,239 +154,186 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   //
 
   @Nullable
-  @Override
   public String getQualifiedName() {
     return getDelegate().getQualifiedName();
   }
 
-  @Override
   public boolean isInterface() {
     return getDelegate().isInterface();
   }
 
-  @Override
   public boolean isAnnotationType() {
     return getDelegate().isAnnotationType();
   }
 
-  @Override
   public boolean isEnum() {
     return getDelegate().isEnum();
   }
 
-  @Override
   @NotNull
   public PsiField[] getFields() {
     return PsiField.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiMethod[] getMethods() {
     return PsiMethod.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiMethod findMethodBySignature(PsiMethod patternMethod, boolean checkBases) {
     return null;
   }
 
-  @Override
   @NotNull
   public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiField findFieldByName(String name, boolean checkBases) {
     return null;
   }
 
-  @Override
   @NotNull
   public PsiMethod[] findMethodsByName(String name, boolean checkBases) {
     return PsiMethod.EMPTY_ARRAY;
   }
 
-  @Override
-  @NotNull
-  public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(String name, boolean checkBases) {
-    return new ArrayList<>();
-  }
-
-  @Override
-  @NotNull
-  public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-    return new ArrayList<>();
-  }
-
-  @Override
   public PsiClass findInnerClassByName(String name, boolean checkBases) {
     return null;
   }
 
-  @Override
   public PsiTypeParameterList getTypeParameterList() {
     return null;
   }
 
-  @Override
   public boolean hasTypeParameters() {
     return getDelegate().isGeneric();
   }
 
-  @Override
   public PsiElement getScope() {
     return getDelegate().getScope();
   }
 
-  @Override
   public boolean isInheritorDeep(PsiClass baseClass, PsiClass classToByPass) {
     return false;
   }
 
-  @Override
   public boolean isInheritor(@NotNull PsiClass baseClass, boolean checkDeep) {
     return false;
   }
 
-  @Override
   @Nullable
-  public PsiIdentifier getNameIdentifier() {
+  public PsiElement getNameIdentifier() {
     return getDelegate().getNameIdentifier();
   }
 
-  @Override
   public PsiElement setName(@NotNull String name) throws IncorrectOperationException {
     return getDelegate().setName(name);
   }
 
-  @Override
   @NotNull
   public PsiMethod[] getConstructors() {
     return PsiMethod.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiDocComment getDocComment() {
     return null;
   }
 
-  @Override
   public boolean isDeprecated() {
     return getDelegate().isDeprecated();
   }
 
-  @Override
   @NotNull
   public PsiReferenceList getExtendsList() {
     // Type parameters don't have extends lists in Haxe
     return null;
   }
 
-  @Override
   public PsiReferenceList getImplementsList() {
     return null;
   }
 
-  @Override
   @NotNull
   public PsiClassType[] getExtendsListTypes() {
     return PsiClassType.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClassType[] getImplementsListTypes() {
     return PsiClassType.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClass[] getInnerClasses() {
     return PsiClass.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiField[] getAllFields() {
     return PsiField.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiMethod[] getAllMethods() {
     return PsiMethod.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClass[] getAllInnerClasses() {
     return PsiClass.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClassInitializer[] getInitializers() {
     return PsiClassInitializer.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiTypeParameter[] getTypeParameters() {
     return PsiTypeParameter.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiClass getSuperClass() {
     return null;
   }
 
-  @Override
   public PsiClass[] getInterfaces() {
     return PsiClass.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClass[] getSupers() {
     return PsiClass.EMPTY_ARRAY;
   }
 
-  @Override
   @NotNull
   public PsiClassType[] getSuperTypes() {
     return PsiClassType.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiClass getContainingClass() {
     return null;
   }
 
-  @Override
   @NotNull
   public Collection<HierarchicalMethodSignature> getVisibleSignatures() {
     return Collections.emptyList();
   }
 
-  @Override
   public HaxeModifierList getModifierList() {
     return getDelegate().getModifierList();
   }
 
-  @Override
   public boolean hasModifierProperty(@NotNull String name) {
     return getDelegate().hasModifierProperty(name);
   }
 
-  @Override
   public PsiJavaToken getLBrace() {
     PsiElement lBrace = getDelegate().getLBrace();
     return lBrace instanceof PsiJavaToken ? (PsiJavaToken) lBrace : null;
   }
 
-  @Override
   public PsiJavaToken getRBrace() {
     PsiElement rBrace = getDelegate().getRBrace();
     return rBrace instanceof PsiJavaToken ? (PsiJavaToken) rBrace : null;
@@ -399,26 +343,22 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   // PsiAnnotationOwner
   //
 
-  @Override
   @NotNull
   public PsiAnnotation[] getAnnotations() {
     // Type parameters don't get modifiers.
     return PsiAnnotation.EMPTY_ARRAY;
   }
 
-  @Override
   public PsiAnnotation findAnnotation(@NotNull @NonNls String qualifiedName) {
     // Type parameters don't get modifiers.
     return null;
   }
 
-  @Override
   @NotNull
   public PsiAnnotation addAnnotation(@NotNull @NonNls String qualifiedName) {
     throw new IncorrectOperationException();
   }
 
-  @Override
   @NotNull
   public PsiAnnotation[] getApplicableAnnotations() {
     return getAnnotations();
