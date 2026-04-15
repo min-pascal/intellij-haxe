@@ -142,7 +142,9 @@ public class HaxeDefineDetectionManager implements Disposable {
 
     HaxeTarget target = settings.getCompilationTarget();
     // add default definitions for target
-    target.getDefinitions().forEach(def -> detectedDefines.put(def, "true"));
+    if (target != null) {
+      target.getDefinitions().forEach(def -> detectedDefines.put(def, "true"));
+    }
 
     // buildsystems
     switch (settings.getBuildConfiguration()) {

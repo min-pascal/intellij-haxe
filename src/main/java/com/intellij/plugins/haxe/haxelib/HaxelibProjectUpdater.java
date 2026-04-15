@@ -567,9 +567,17 @@ public class HaxelibProjectUpdater {
                                HaxeLibraryList haxelibExternalItems,
                                ModuleLibraryCache libManager, HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from HXML file.");
-    String hxmlPath = settings.getHxmlPath();
+    String hxmlPathFromSettings = settings.getHxmlPath();
 
-    // TODO: Walk the command line looking for libs, too.
+    // Fallback to project-level hxml path (for IDEs without module settings, e.g. WebStorm)
+    if ((hxmlPathFromSettings == null || hxmlPathFromSettings.isEmpty()) && project != null) {
+      String projectHxmlPath = com.intellij.plugins.haxe.config.HaxeProjectSettings.getInstance(project).getHaxeHxmlPath();
+      if (projectHxmlPath != null && !projectHxmlPath.isEmpty()) {
+        hxmlPathFromSettings = projectHxmlPath;
+      }
+    }
+
+    final String hxmlPath = hxmlPathFromSettings;
 
     if (hxmlPath != null && !hxmlPath.isEmpty()) {
       doWriteAction(()->VirtualFileManager.getInstance().syncRefresh());
