@@ -1,0 +1,27 @@
+<!--
+  ~ Extensions that require the Java module (com.intellij.modules.java).
+  ~ This file is loaded only when the Java plugin is available.
+  ~ IDEs without Java support (PyCharm, WebStorm, CLion, etc.) will skip these extensions.
+  -->
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- JPS compile server integration (requires Java compiler infrastructure) -->
+    <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
+    <compileServer.plugin id="haxe" classpath="modules/Haxe-plugin.jps-plugin.jar;modules/Haxe-plugin.common.jar"/>
+
+    <!-- Compiler task (requires com.intellij.openapi.compiler API from Java plugin) -->
+    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
+
+    <!-- Module builder (HaxeModuleBuilder extends JavaModuleBuilder) -->
+    <moduleBuilder builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
+
+    <!-- Hierarchy providers (depend on Java hierarchy infrastructure) -->
+    <typeHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyProvider"/>
+    <callHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallHierarchyProvider"/>
+    <methodHierarchyProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hierarchy.method.HaxeMethodHierarchyProvider"/>
+    <hierarchy.referenceProcessor implementation="com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor"/>
+
+    <!-- Java overriding methods search -->
+    <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
+  </extensions>
+</idea-plugin>
