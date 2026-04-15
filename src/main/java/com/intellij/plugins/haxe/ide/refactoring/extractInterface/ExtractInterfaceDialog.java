@@ -26,6 +26,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.refactoring.*;
@@ -58,8 +59,8 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
   @Override
   protected ComponentWithBrowseButton<EditorComboBox> createPackageNameField() {
     String packageName = HaxeResolveUtil.getPackageName(mySourceClass.getContainingFile());
-    PsiPackage aPackage = JavaPsiFacade.getInstance(myProject).findPackage(packageName);
-   return new PackageNameReferenceEditorCombo(aPackage.getQualifiedName(), myProject, "ExtractSuperBase.RECENT_KEYS",
+    PsiPackage aPackage = HaxeJavaUtil.findPackage(myProject, packageName);
+   return new PackageNameReferenceEditorCombo(aPackage != null ? aPackage.getQualifiedName() : packageName, myProject, "ExtractSuperBase.RECENT_KEYS",
                                         RefactoringBundle.message("choose.destination.package"));
 
   }
@@ -121,7 +122,7 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
     if (!(fromDefaultPackage && StringUtil.isEmpty(targetPackageName)) && !PsiNameHelper.getInstance(myProject).isQualifiedName(targetPackageName)) {
       throw new OperationFailedException("Invalid package name: " + targetPackageName);
     }
-    final PsiPackage aPackage = JavaPsiFacade.getInstance(myProject).findPackage(targetPackageName);
+    final PsiPackage aPackage = HaxeJavaUtil.findPackage(myProject, targetPackageName);
     if (aPackage != null) {
       final PsiDirectory[] directories = aPackage.getDirectories(mySourceClass.getResolveScope());
       if (directories.length >= 1) {

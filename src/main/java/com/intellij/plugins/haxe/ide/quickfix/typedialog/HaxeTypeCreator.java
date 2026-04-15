@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -42,9 +43,9 @@ public class HaxeTypeCreator {
                 try {
                     PsiManager psiManager = PsiManager.getInstance(myProject);
                     GlobalSearchScope scope = GlobalSearchScope.moduleScope(module);
-                    PsiPackage packageByQName = HaxeResolveUtil.findPackageByQName(packageName, psiManager, scope);
+                    PsiElement packageByQName = HaxeResolveUtil.findPackageByQName(packageName, psiManager, scope);
 
-                    PsiDirectory[] directories = packageByQName.getDirectories(scope);
+                    PsiDirectory[] directories = HaxeJavaUtil.getPackageDirectories(packageByQName, scope);
                     PsiDirectory directory = directories[0];
 
                     PsiElement psiElement = HaxeFileTemplateUtil.createType(typeName, generics, packageName, directory, type, HaxeTypeCreator.class.getClassLoader());

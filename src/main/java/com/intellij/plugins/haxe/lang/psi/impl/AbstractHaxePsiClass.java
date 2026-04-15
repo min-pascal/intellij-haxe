@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -612,11 +613,14 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public PsiPackage getPackage() {
+  public PsiElement getPackage() {
     HaxePackageStatement childOfType = PsiTreeUtil.getChildOfType(getContainingFile(), HaxePackageStatement.class);
     if(childOfType!= null) {
       HaxeReferenceExpression reference = childOfType.getReferenceExpression();
-      if(reference!= null && reference.resolve() instanceof PsiPackage aPackage) return aPackage;
+      if(reference!= null) {
+        PsiElement resolved = reference.resolve();
+        if (HaxeJavaUtil.isPsiPackage(resolved)) return resolved;
+      }
     }
     return null;
   }

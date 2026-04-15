@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Set;
 
-import static com.intellij.patterns.PsiJavaPatterns.psiElement;
+import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PPEXPRESSION;
 
 public class HaxePrecompilerContributor extends CompletionContributor {

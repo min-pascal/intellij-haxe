@@ -3,12 +3,14 @@ package com.intellij.plugins.haxe.ide.lookup;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.PackageLookupItem;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -17,7 +19,8 @@ public class HaxePackageLookupElement extends PackageLookupItem implements HaxeL
   private final PsiPackage aPackage;
 
   @NotNull
-  public static Collection<HaxePackageLookupElement>  convert(PsiPackage[] packages) {
+  public static Collection<HaxePackageLookupElement> convert(PsiPackage[] packages) {
+    if (packages == null) return Collections.emptyList();
     final List<HaxePackageLookupElement> result = new ArrayList<>();
     for (PsiPackage aPackage : packages) {
         result.add(new HaxePackageLookupElement(aPackage));

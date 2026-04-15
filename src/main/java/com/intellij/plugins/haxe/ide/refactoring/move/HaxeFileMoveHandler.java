@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.move;
 
-import com.intellij.openapi.roots.PackageIndex;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
@@ -49,7 +49,7 @@ public class HaxeFileMoveHandler extends MoveFileHandler {
 
   @Override
   public void prepareMovedFile(PsiFile file, PsiDirectory moveDestination, Map<PsiElement, PsiElement> oldToNewMap) {
-    file.putUserData(destinationPackageKey, PackageIndex.getInstance(file.getProject()).getPackageNameByDirectory(moveDestination.getVirtualFile()));
+    file.putUserData(destinationPackageKey, HaxeJavaUtil.getPackageNameByDirectory(file.getProject(), moveDestination.getVirtualFile()));
   }
 
   @Override

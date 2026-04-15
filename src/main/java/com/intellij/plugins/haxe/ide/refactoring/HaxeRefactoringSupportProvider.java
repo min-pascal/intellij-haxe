@@ -18,14 +18,10 @@
 package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.lang.refactoring.RefactoringSupportProvider;
-import com.intellij.plugins.haxe.ide.refactoring.extractInterface.ExtractInterfaceHandler;
 import com.intellij.plugins.haxe.ide.refactoring.extractMethod.HaxeExtractMethodHandler;
-import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperclassHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceParameter.HaxeIntroduceParameterHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceVariable.HaxeIntroduceVariableHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceField.HaxeIntroduceConstantHandler;
-import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler;
-import com.intellij.plugins.haxe.ide.refactoring.memberPushDown.HaxePushDownHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -53,13 +49,13 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Nullable
   @Override
   public RefactoringActionHandler getExtractInterfaceHandler() {
-    return new ExtractInterfaceHandler();
+    return createHandler("com.intellij.plugins.haxe.ide.refactoring.extractInterface.ExtractInterfaceHandler");
   }
 
   @Nullable
   @Override
   public RefactoringActionHandler getExtractSuperClassHandler() {
-    return new ExtractSuperclassHandler();
+    return createHandler("com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperclassHandler");
   }
 
   @Nullable
@@ -83,12 +79,21 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Nullable
   @Override
   public RefactoringActionHandler getPullUpHandler() {
-    return new HaxePullUpHandler();
+    return createHandler("com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler");
   }
 
   @Nullable
   @Override
   public RefactoringActionHandler getPushDownHandler() {
-    return new HaxePushDownHandler();
+    return createHandler("com.intellij.plugins.haxe.ide.refactoring.memberPushDown.HaxePushDownHandler");
+  }
+
+  @Nullable
+  private static RefactoringActionHandler createHandler(String className) {
+    try {
+      return (RefactoringActionHandler) Class.forName(className).getDeclaredConstructor().newInstance();
+    } catch (Exception | NoClassDefFoundError e) {
+      return null;
+    }
   }
 }

@@ -4,7 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.SyntheticElement;
@@ -17,9 +16,13 @@ public class HaxeUnknownClass extends AbstractHaxePsiClass implements HaxeClass,
     private static ASTNode getNode(@NonNull PsiElement context) {
         ASTNode node = context.getNode();
         if(node != null && context.isPhysical())  return node;
-        PsiElementFactory factory = JavaPsiFacade.getInstance(context.getProject()).getElementFactory();
-        PsiElement unknown = factory.createDummyHolder("Unknown", HaxeTokenTypes.CLASS_DECLARATION, context);
-        return unknown.getNode();
+        try {
+            PsiElementFactory factory = com.intellij.psi.JavaPsiFacade.getInstance(context.getProject()).getElementFactory();
+            PsiElement unknown = factory.createDummyHolder("Unknown", HaxeTokenTypes.CLASS_DECLARATION, context);
+            return unknown.getNode();
+        } catch (NoClassDefFoundError e) {
+            return context.getNode();
+        }
     }
 
     public HaxeUnknownClass(@NotNull PsiElement context) {

@@ -22,7 +22,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiPackage;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.tree.IElementType;
@@ -500,7 +500,7 @@ public class HaxeExpressionEvaluatorHandlers {
 
           else if (typeHolder == null  || typeHolder.isUnknown()) {
             // attempt to resolve sub-element using default handle logic
-            if (subelement != null && !(subelement instanceof PsiPackage)) {
+            if (subelement != null && !HaxeJavaUtil.isPsiPackage(subelement)) {
               typeHolder = handle(subelement, context, resolver);
             }
           }

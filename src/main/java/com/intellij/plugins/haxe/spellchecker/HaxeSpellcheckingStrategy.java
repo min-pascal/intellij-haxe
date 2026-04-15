@@ -7,9 +7,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.spellchecker.DocCommentTokenizer;
-import com.intellij.spellchecker.NamedElementTokenizer;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
@@ -21,9 +18,20 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOUBLE_QUOT
 
 
 public class HaxeSpellcheckingStrategy extends SpellcheckingStrategy implements DumbAware {
-    private final NamedElementTokenizer namedElementTokenizer = new NamedElementTokenizer();
+    private volatile Tokenizer<?> namedElementTokenizer;
     private final HaxeStringLiteralTokenizer stringLiteralTokenizer = new HaxeStringLiteralTokenizer();
-    private final DocCommentTokenizer myDocCommentTokenizer = new DocCommentTokenizer();
+
+    private Tokenizer<?> getNamedElementTokenizer() {
+        if (namedElementTokenizer == null) {
+            try {
+                Class<?> clazz = Class.forName("com.intellij.spellchecker.NamedElementTokenizer");
+                namedElementTokenizer = (Tokenizer<?>) clazz.getDeclaredConstructor().newInstance();
+            } catch (Exception | NoClassDefFoundError e) {
+                namedElementTokenizer = EMPTY_TOKENIZER;
+            }
+        }
+        return namedElementTokenizer;
+    }
 
     @Override
     public @NotNull Tokenizer getTokenizer(@NotNull PsiElement element, @NotNull Set<SpellCheckingInspection.SpellCheckingScope> scope) {
@@ -35,16 +43,12 @@ public class HaxeSpellcheckingStrategy extends SpellcheckingStrategy implements 
 
         if (element instanceof HaxeMethod haxeMethod && haxeMethod.isConstructor()) return EMPTY_TOKENIZER;
 
-        if (element instanceof PsiDocComment) {
-            return useTextLevelSpellchecking() ? EMPTY_TOKENIZER : myDocCommentTokenizer;
-        }
-
         if (element instanceof HaxeStringLiteralExpression literalExpression) {
             return useTextLevelSpellchecking() ? EMPTY_TOKENIZER : stringLiteralTokenizer;
         }
 
         if (element instanceof PsiNamedElement) {
-            return namedElementTokenizer;
+            return getNamedElementTokenizer();
         }
         if (shouldIgnore(element)) {
             return EMPTY_TOKENIZER;

@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
@@ -88,12 +87,16 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
 
 
   private PsiClassType @NonNull [] createPsiClassTypesForCodeReference(PsiJavaCodeReferenceElement[] ref) {
-    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-    PsiClassType[] types = new PsiClassType[ref.length];
-    for (int i = 0; i < ref.length; i++) {
-      types[i] = factory.createType(ref[i]);
+    try {
+      PsiElementFactory factory = com.intellij.psi.JavaPsiFacade.getInstance(getProject()).getElementFactory();
+      PsiClassType[] types = new PsiClassType[ref.length];
+      for (int i = 0; i < ref.length; i++) {
+        types[i] = factory.createType(ref[i]);
+      }
+      return types;
+    } catch (NoClassDefFoundError e) {
+      return PsiClassType.EMPTY_ARRAY;
     }
-    return types;
   }
 
 
@@ -103,13 +106,16 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
   public PsiClassType[] getReferencedTypes() {
     log.debug("getReferencedTypes");
     PsiJavaCodeReferenceElement[] refs = getReferenceElements();
-    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
-    PsiClassType[] types = new PsiClassType[refs.length];
-    for (int i = 0; i < types.length; i++) {
-      types[i] = factory.createType(refs[i]);
+    try {
+      PsiElementFactory factory = com.intellij.psi.JavaPsiFacade.getInstance(getProject()).getElementFactory();
+      PsiClassType[] types = new PsiClassType[refs.length];
+      for (int i = 0; i < types.length; i++) {
+        types[i] = factory.createType(refs[i]);
+      }
+      return types;
+    } catch (NoClassDefFoundError e) {
+      return PsiClassType.EMPTY_ARRAY;
     }
-
-    return types;
   }
 
   @NotNull

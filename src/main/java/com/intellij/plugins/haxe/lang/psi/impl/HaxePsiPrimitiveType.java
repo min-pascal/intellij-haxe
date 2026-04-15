@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.PsiTypeVisitor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -45,7 +44,11 @@ public class HaxePsiPrimitiveType extends PsiType {
     if (annotations.length == 0) return myName;
 
     StringBuilder sb = new StringBuilder();
-    PsiNameHelper.appendAnnotations(sb, annotations, qualified);
+    for (PsiAnnotation annotation : annotations) {
+      sb.append('@');
+      sb.append(qualified ? annotation.getQualifiedName() : annotation.getQualifiedName());
+      sb.append(' ');
+    }
     sb.append(myName);
     return sb.toString();
   }

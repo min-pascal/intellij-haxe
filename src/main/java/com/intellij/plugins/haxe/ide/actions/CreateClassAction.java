@@ -25,7 +25,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.PackageIndex;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -67,7 +67,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   @Override
   protected boolean checkPackageExists(PsiDirectory directory) {
-    return PackageIndex.getInstance(directory.getProject()).getPackageNameByDirectory(directory.getVirtualFile()) != null;
+    return HaxeJavaUtil.getPackageNameByDirectory(directory.getProject(), directory.getVirtualFile()) != null;
   }
 
   @Override
@@ -88,7 +88,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   @Override
   protected PsiFile doCreate(@NotNull PsiDirectory dir, String className, String templateName) throws IncorrectOperationException {
-    String packageName = PackageIndex.getInstance(dir.getProject()).getPackageNameByDirectory(dir.getVirtualFile());
+    String packageName = HaxeJavaUtil.getPackageNameByDirectory(dir.getProject(), dir.getVirtualFile());
     try {
       return createClass(className, packageName, dir, templateName).getContainingFile();
     }

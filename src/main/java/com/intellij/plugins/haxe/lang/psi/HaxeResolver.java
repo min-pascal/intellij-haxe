@@ -46,6 +46,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -311,7 +312,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static @Nullable List<@NotNull PsiElement> checkQualifiedName(@NotNull HaxeReference reference) {
-    if (PsiNameHelper.getInstance(reference.getProject()).isQualifiedName(reference.getText())) {
+    if (isQualifiedName(reference.getText())) {
       List<HaxeModel> resolvedPackage =
         HaxeProjectModel.fromElement(reference).resolve(new FullyQualifiedInfo(reference.getText()), reference.getResolveScope());
       if (resolvedPackage != null && !resolvedPackage.isEmpty() && resolvedPackage.getFirst() instanceof HaxePackageModel) {
@@ -2698,7 +2699,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
       PsiElement psi = item.getBasePsi();
-      if (psi instanceof  PsiPackage) return psi;
+      if (HaxeJavaUtil.isPsiPackage(psi)) return psi;
 
       HaxeModule module = PsiTreeUtil.findChildOfType(psi, HaxeModule.class);
       if(module != null) {
@@ -3108,5 +3109,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     @Override
     public void handleEvent(Event event, @Nullable Object associated) {
     }
+  }
+
+  private static boolean isQualifiedName(String text) {
+    if (text == null || text.isEmpty()) return false;
+    return text.matches("[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)*");
   }
 }

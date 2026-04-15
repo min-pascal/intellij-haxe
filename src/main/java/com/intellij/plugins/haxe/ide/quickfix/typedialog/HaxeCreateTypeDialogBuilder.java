@@ -24,7 +24,6 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -180,7 +179,7 @@ public class HaxeCreateTypeDialogBuilder {
 
         PsiManager psiManager = PsiManager.getInstance(myProject);
         GlobalSearchScope scope = GlobalSearchScope.moduleScope(myModule);
-        PsiPackage packageByQName = HaxeResolveUtil.findPackageByQName(packageName, psiManager, scope);
+        PsiElement packageByQName = HaxeResolveUtil.findPackageByQName(packageName, psiManager, scope);
 
         if (packageByQName == null) {
             MessageDialogBuilder.YesNo createPackageDialog = MessageDialogBuilder.yesNo("Create missing package(s)", "create '" + packageName + "' package");

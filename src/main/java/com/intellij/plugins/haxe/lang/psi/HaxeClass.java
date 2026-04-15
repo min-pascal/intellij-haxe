@@ -168,7 +168,7 @@ public interface HaxeClass extends HaxeComponent, HaxeModelTarget {
   HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver);
   HaxeNamedComponent findArrayAccessSetter(@Nullable HaxeGenericResolver resolver);
 
-  PsiPackage getPackage();
+  PsiElement getPackage();
 
   HaxeModule getModule();
 

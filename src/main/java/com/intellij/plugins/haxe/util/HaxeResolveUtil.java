@@ -214,13 +214,16 @@ public class HaxeResolveUtil {
     return null;
   }
   @Nullable
-  public static PsiPackage findPackageByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
+  public static PsiElement findPackageByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
       HaxeModel item = result.getFirst();
-      if (item instanceof HaxePackageModel packageModel && packageModel.getBasePsi() instanceof PsiPackage psiPackage) {
-        return psiPackage;
+      if (item instanceof HaxePackageModel packageModel) {
+        PsiElement basePsi = packageModel.getBasePsi();
+        if (HaxeJavaUtil.isPsiPackage(basePsi)) {
+          return basePsi;
+        }
       }
     }
     return null;
@@ -439,7 +442,7 @@ public class HaxeResolveUtil {
 
     final Stack<PsiElement> stack = resolveStack.get();
 
-    if (element == null || element instanceof PsiPackage) {
+    if (element == null || HaxeJavaUtil.isPsiPackage(element)) {
       traceMessage("Cannot resolve " + (element == null ? "null value" : "package statement"), stack.size());
       return HaxeResolveResult.EMPTY;
     }

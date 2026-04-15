@@ -18,8 +18,8 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.plugins.haxe.util.HaxeNameUtils;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -208,7 +208,7 @@ public class HaxePackageModel implements HaxeExposableModel {
 
   @Override
   public PsiElement getBasePsi() {
-    return JavaPsiFacade.getInstance(this.project.getProject()).findPackage(path);
+    return HaxeJavaUtil.findPackage(this.project.getProject(), path);
   }
 
   @Nullable

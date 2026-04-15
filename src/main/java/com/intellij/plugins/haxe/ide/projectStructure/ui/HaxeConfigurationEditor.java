@@ -31,7 +31,7 @@ import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 
-import com.intellij.openapi.roots.PackageIndex;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -370,7 +370,7 @@ public class HaxeConfigurationEditor {
 
   private void setChosenFile(VirtualFile virtualFile) {
     VirtualFile parent = virtualFile.getParent();
-    String qualifier = parent == null ? null : PackageIndex.getInstance(myModule.getProject()).getPackageNameByDirectory(parent);
+    String qualifier = parent == null ? null : HaxeJavaUtil.getPackageNameByDirectory(myModule.getProject(), parent);
     qualifier = qualifier != null && qualifier.length() != 0 ? qualifier + '.' : "";
     myMainClassFieldWithButton.setText(qualifier + FileUtil.getNameWithoutExtension(virtualFile.getName()));
   }

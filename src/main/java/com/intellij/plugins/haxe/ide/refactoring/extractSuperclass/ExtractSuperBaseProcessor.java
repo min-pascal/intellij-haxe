@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -109,8 +110,8 @@ public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessor
     PsiReference[] refs = ReferencesSearch.search(myClass, GlobalSearchScope.projectScope(myProject), false).toArray(new PsiReference[0]);
     final ArrayList<UsageInfo> result = new ArrayList<UsageInfo>();
     detectTurnToSuperRefs(refs, result);
-    final PsiPackage originalPackage = JavaDirectoryService.getInstance().getPackage(myClass.getContainingFile().getContainingDirectory());
-    if (Comparing.equal(JavaDirectoryService.getInstance().getPackage(myTargetDirectory), originalPackage)) {
+    final PsiPackage originalPackage = HaxeJavaUtil.getPackageForDirectory(myClass.getContainingFile().getContainingDirectory());
+    if (Comparing.equal(HaxeJavaUtil.getPackageForDirectory(myTargetDirectory), originalPackage)) {
       result.clear();
     }
     for (final PsiReference ref : refs) {

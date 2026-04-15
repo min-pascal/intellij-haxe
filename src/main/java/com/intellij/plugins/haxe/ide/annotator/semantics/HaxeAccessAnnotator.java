@@ -22,8 +22,8 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -309,8 +309,8 @@ public class HaxeAccessAnnotator implements Annotator {
       PsiElement target = metaReference.resolve();
       String metaReferenceText = metaReference.getQualifiedName();
       String qualifiedName = null;
-      if (target instanceof PsiPackage aPackage) {
-        qualifiedName = aPackage.getQualifiedName();
+      if (HaxeJavaUtil.isPsiPackage(target)) {
+        qualifiedName = HaxeJavaUtil.getPackageQualifiedName(target);
       } else if (target instanceof HaxeClass aClass) {
         qualifiedName = aClass.getQualifiedName();
       } else if (target instanceof HaxeMethod method) {
@@ -361,8 +361,8 @@ public class HaxeAccessAnnotator implements Annotator {
       List<PsiElement> accessMetaTarget = getAccessMetaTarget(metadata);
       for (PsiElement target : accessMetaTarget) {
 
-        if (target instanceof PsiPackage aPackage) {
-          if (memberModel.getPackage() == aPackage) {
+        if (HaxeJavaUtil.isPsiPackage(target)) {
+          if (memberModel.getPackage() == target) {
             return true;
           }
         } else if (target instanceof HaxeModule module) {
@@ -401,12 +401,14 @@ public class HaxeAccessAnnotator implements Annotator {
       List<PsiElement> accessMetaTarget = getAccessMetaTarget(metadata);
       for (PsiElement target : accessMetaTarget) {
 
-        if (target instanceof PsiPackage aPackage) {
-          if (referenceParentModel.getPackage() == aPackage) {
+        if (HaxeJavaUtil.isPsiPackage(target)) {
+          if (referenceParentModel.getPackage() == target) {
             return true;
           } else {
             // allow  all sub packages of package
-            if (referenceParentModel.getPackage().getQualifiedName().startsWith(aPackage.getQualifiedName())) {
+            String refPkgName = HaxeJavaUtil.getPackageQualifiedName(referenceParentModel.getPackage());
+            String targetPkgName = HaxeJavaUtil.getPackageQualifiedName(target);
+            if (refPkgName != null && targetPkgName != null && refPkgName.startsWith(targetPkgName)) {
               return true;
             }
           }
@@ -487,8 +489,8 @@ public class HaxeAccessAnnotator implements Annotator {
     List<PsiElement> classesWithName = new ArrayList<>();
     if(firstChild instanceof HaxeReferenceExpression packageRef) {
       PsiElement packageResolve = packageRef.resolve();
-      if(packageResolve instanceof  PsiPackage aPackage) {
-        PsiFile[] packageFiles = aPackage.getFiles(GlobalSearchScope.allScope(metadata.getProject()));
+      if(packageResolve instanceof  PsiElement && HaxeJavaUtil.isPsiPackage(packageResolve)) {
+        PsiFile[] packageFiles = HaxeJavaUtil.getPackageFiles(packageResolve, GlobalSearchScope.allScope(metadata.getProject()));
         for (PsiFile packageFile : packageFiles) {
             if(packageFile instanceof  HaxeFile haxeFile) {
               HaxeFileModel model = haxeFile.getModel();

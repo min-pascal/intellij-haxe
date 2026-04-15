@@ -23,7 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiPackage;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.MultiMap;
@@ -152,7 +152,7 @@ public class HaxeImportUtil {
           if (!names.contains(qualifiedName)) {
 
             boolean qualified = reference.isQualified();
-            if (!(qualified || referencedElement instanceof PsiPackage)){
+            if (!(qualified || HaxeJavaUtil.isPsiPackage(referencedElement))){
               addToResult(referencedElement, workElement, qualifiedName);
             }
             if (qualified) {

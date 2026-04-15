@@ -33,7 +33,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpConflictsUtil;
-
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -137,7 +137,7 @@ public class ExtractSuperclassHandler implements RefactoringActionHandler, Extra
     final PsiDirectory targetDirectory = dialog.getTargetDirectory();
     final PsiPackage targetPackage;
     if (targetDirectory != null) {
-      targetPackage = JavaDirectoryService.getInstance().getPackage(targetDirectory);
+      targetPackage = HaxeJavaUtil.getPackageForDirectory(targetDirectory);
     }
     else {
       targetPackage = null;

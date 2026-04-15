@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.ui.HaxeRunConfigurationEditorForm;
 import com.intellij.util.xmlb.XmlSerializer;
@@ -84,7 +85,8 @@ public class HaxeApplicationConfiguration extends HaxeApplicationConfigurationBa
       throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.no.module", getName()));
     }
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-    if (settings.isUseHxmlToBuild() && !settings.getCompilationTarget().isNoOutput() && !customFileToLaunch) {
+    final HaxeTarget compilationTarget = settings.getCompilationTarget();
+    if (settings.isUseHxmlToBuild() && compilationTarget != null && !compilationTarget.isNoOutput() && !customFileToLaunch) {
       throw new RuntimeConfigurationException(HaxeBundle.message("haxe.run.select.custom.file"));
     }
     if (settings.isUseNmmlToBuild() && customFileToLaunch) {
