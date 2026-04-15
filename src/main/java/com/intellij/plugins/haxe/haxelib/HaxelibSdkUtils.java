@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -116,19 +117,38 @@ public class HaxelibSdkUtils {
   private static Sdk lookupSdkFromSettings(@NotNull Project project) {
     HaxeProjectSettings settings = HaxeProjectSettings.getInstance(project);
     String sdkPath = settings.getHaxeSdkPath();
-    if (sdkPath != null && !sdkPath.isEmpty()) {
-      HaxeSdkType sdkType = HaxeSdkType.getInstance();
-      if (sdkType.isValidSdkHome(sdkPath)) {
-        String version = sdkType.getVersionString(sdkPath);
-        String name = sdkType.suggestSdkName(version, sdkPath);
-        ProjectJdkImpl sdk = new ProjectJdkImpl(name, sdkType, sdkPath, version != null ? version : "");
-        ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
-          sdkType.setupSdkPaths(sdk);
-        });
-        return sdk;
+    if (sdkPath == null || sdkPath.isEmpty()) return null;
+
+    HaxeSdkType sdkType = HaxeSdkType.getInstance();
+    if (!sdkType.isValidSdkHome(sdkPath)) return null;
+
+    // Check if already registered in ProjectJdkTable
+    ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
+    for (Sdk existingSdk : jdkTable.getAllJdks()) {
+      if (existingSdk.getSdkType() == sdkType && sdkPath.equals(existingSdk.getHomePath())) {
+        return existingSdk;
       }
     }
-    return null;
+
+    // Create and register new SDK
+    String version = sdkType.getVersionString(sdkPath);
+    String name = sdkType.suggestSdkName(version, sdkPath);
+    ProjectJdkImpl sdk = new ProjectJdkImpl(name, sdkType, sdkPath, version != null ? version : "");
+    sdkType.setupSdkPaths(sdk);
+
+    ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+      ApplicationManager.getApplication().runWriteAction(() -> {
+        if (jdkTable.findJdk(sdk.getName()) == null) {
+          jdkTable.addJdk(sdk);
+        }
+        // Set as project SDK if none is set
+        ProjectRootManager prm = ProjectRootManager.getInstance(project);
+        if (prm.getProjectSdk() == null) {
+          prm.setProjectSdk(sdk);
+        }
+      });
+    });
+    return sdk;
   }
   public static boolean isValidHaxeSdk(@NotNull Sdk haxeSdk) {
     HaxeSdkData data = (HaxeSdkData)haxeSdk.getSdkAdditionalData();
