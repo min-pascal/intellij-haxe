@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
@@ -79,7 +80,9 @@ public class HaxelibSdkUtils {
     ModuleRootManager mgr = ModuleRootManager.getInstance(module);
     Sdk sdk = null != mgr ? mgr.getSdk() : null;
     if (null == sdk) {
-      // TODO: Move error string to a resource in HaxeBundle.
+      sdk = lookupSdkFromSettings(module.getProject());
+    }
+    if (null == sdk) {
       sdk = getDefaultSDK("Invalid (or no) SDK specified for module " + module.getName());
     }
     return sdk;
@@ -97,10 +100,35 @@ public class HaxelibSdkUtils {
     ProjectRootManager mgr = ProjectRootManager.getInstance(project);
     Sdk sdk = null != mgr ? mgr.getProjectSdk() : null;
     if (null == sdk) {
-      // TODO: Move error string to a resource in HaxeBundle.
+      sdk = lookupSdkFromSettings(project);
+    }
+    if (null == sdk) {
       sdk = getDefaultSDK("Invalid (or no) SDK specified for project " + project.getName());
     }
     return sdk;
+  }
+
+  /**
+   * Try to create an SDK from the path configured in Haxe project settings.
+   * This is the primary SDK configuration mechanism for IDEs without Project Structure (e.g. WebStorm).
+   */
+  @org.jetbrains.annotations.Nullable
+  private static Sdk lookupSdkFromSettings(@NotNull Project project) {
+    HaxeProjectSettings settings = HaxeProjectSettings.getInstance(project);
+    String sdkPath = settings.getHaxeSdkPath();
+    if (sdkPath != null && !sdkPath.isEmpty()) {
+      HaxeSdkType sdkType = HaxeSdkType.getInstance();
+      if (sdkType.isValidSdkHome(sdkPath)) {
+        String version = sdkType.getVersionString(sdkPath);
+        String name = sdkType.suggestSdkName(version, sdkPath);
+        ProjectJdkImpl sdk = new ProjectJdkImpl(name, sdkType, sdkPath, version != null ? version : "");
+        ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
+          sdkType.setupSdkPaths(sdk);
+        });
+        return sdk;
+      }
+    }
+    return null;
   }
   public static boolean isValidHaxeSdk(@NotNull Sdk haxeSdk) {
     HaxeSdkData data = (HaxeSdkData)haxeSdk.getSdkAdditionalData();

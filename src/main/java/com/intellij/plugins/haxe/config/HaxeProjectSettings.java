@@ -44,9 +44,11 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   public static final String DEFINES = "defines";
   public static final String AUTO_DETECT_DEFINES = "auto_detect_defines";
   public static final String AUTO_DETECT_REFERENCES = "auto_detect_references";
+  public static final String HAXE_SDK_PATH = "haxe_sdk_path";
   private String userCompilerDefinitions = "";
   private boolean autoDetectDefinitions = true;
   private boolean detectCodeReferencesInConsole = true;
+  private String haxeSdkPath = "";
   private HaxeModificationTracker tracker = new HaxeModificationTracker(getClass().getName());
 
   public Set<String> getUserCompilerDefinitionsAsSet() {
@@ -97,6 +99,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
     userCompilerDefinitions = state.getAttributeValue(DEFINES, "");
     String defines = state.getAttributeValue(AUTO_DETECT_DEFINES);
     String references = state.getAttributeValue(AUTO_DETECT_REFERENCES);
+    haxeSdkPath = state.getAttributeValue(HAXE_SDK_PATH, "");
 
     autoDetectDefinitions = Optional.ofNullable(defines).map(Boolean::parseBoolean).orElse(true);
     detectCodeReferencesInConsole= Optional.ofNullable(references).map(Boolean::parseBoolean).orElse(true);
@@ -110,6 +113,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
     element.setAttribute(DEFINES, userCompilerDefinitions);
     element.setAttribute(AUTO_DETECT_DEFINES, String.valueOf(autoDetectDefinitions));
     element.setAttribute(AUTO_DETECT_REFERENCES, String.valueOf(detectCodeReferencesInConsole));
+    element.setAttribute(HAXE_SDK_PATH, haxeSdkPath != null ? haxeSdkPath : "");
     return element;
   }
 
@@ -136,5 +140,15 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
 
   public void setDetectCodeReferencesInConsole(boolean selected) {
     detectCodeReferencesInConsole = selected;
+  }
+
+  @NotNull
+  public String getHaxeSdkPath() {
+    return haxeSdkPath != null ? haxeSdkPath : "";
+  }
+
+  public void setHaxeSdkPath(@NotNull String path) {
+    haxeSdkPath = path;
+    tracker.notifyUpdated();
   }
 }

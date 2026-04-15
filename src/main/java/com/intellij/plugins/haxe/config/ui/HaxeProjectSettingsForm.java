@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.config.ui;
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.ui.AddDeleteListPanel;
@@ -35,8 +37,19 @@ public class HaxeProjectSettingsForm {
   private MyAddDeleteListPanel myAddDeleteListPanel;
   private JCheckBox autoDetectDefinitionsFromCheckBox;
   private JCheckBox autoDetectCodeReferencesCheckBox;
+  private TextFieldWithBrowseButton mySdkPathField;
+  private JLabel mySdkPathLabel;
 
   public JComponent getPanel() {
+    if (mySdkPathField != null && mySdkPathField.getClientProperty("browseConfigured") == null) {
+      mySdkPathField.addBrowseFolderListener(
+        "Select Haxe SDK Directory",
+        "Choose the directory containing the Haxe compiler (haxe executable)",
+        null,
+        FileChooserDescriptorFactory.createSingleFolderDescriptor()
+      );
+      mySdkPathField.putClientProperty("browseConfigured", Boolean.TRUE);
+    }
     return myPanel;
   }
 
@@ -53,18 +66,22 @@ public class HaxeProjectSettingsForm {
     final boolean autoDetectCodeNew = autoDetectCodeReferencesCheckBox.isSelected();
     boolean codeCheckboxChanged = autoDetectCodeOld != autoDetectCodeNew;
 
-    return !listEqual || checkboxChanged | codeCheckboxChanged;
+    boolean sdkPathChanged = !settings.getHaxeSdkPath().equals(mySdkPathField.getText().trim());
+
+    return !listEqual || checkboxChanged || codeCheckboxChanged || sdkPathChanged;
   }
 
   public void applyEditorTo(HaxeProjectSettings settings) {
     settings.setUserCompilerDefinitions(myAddDeleteListPanel.getItems());
     settings.setAutoDetectDefinitions(autoDetectDefinitionsFromCheckBox.isSelected());
     settings.setDetectCodeReferencesInConsole(autoDetectCodeReferencesCheckBox.isSelected());
+    settings.setHaxeSdkPath(mySdkPathField.getText().trim());
   }
 
   public void resetEditorFrom(HaxeProjectSettings settings) {
     autoDetectCodeReferencesCheckBox.setSelected(settings.getDetectCodeReferencesInConsole());
     autoDetectDefinitionsFromCheckBox.setSelected(settings.getAutoDetectDefinitions());
+    mySdkPathField.setText(settings.getHaxeSdkPath());
     myAddDeleteListPanel.removeALlItems();
     for (String item : settings.getUserCompilerDefinitions()) {
       myAddDeleteListPanel.addItem(item);
