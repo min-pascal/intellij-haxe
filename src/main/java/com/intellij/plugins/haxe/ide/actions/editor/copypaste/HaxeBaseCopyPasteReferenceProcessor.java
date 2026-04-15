@@ -55,6 +55,14 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
 
     @Override
     public @NotNull List<HaxeReferenceTransferableData> collectTransferableData(@NotNull PsiFile file, @NotNull Editor editor, int @NotNull [] startOffsets, int @NotNull [] endOffsets) {
+        try {
+            return collectTransferableDataInner(file, editor, startOffsets, endOffsets);
+        } catch (Exception | NoClassDefFoundError e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private @NotNull List<HaxeReferenceTransferableData> collectTransferableDataInner(@NotNull PsiFile file, @NotNull Editor editor, int @NotNull [] startOffsets, int @NotNull [] endOffsets) {
         if (CodeInsightSettings.getInstance().ADD_IMPORTS_ON_PASTE == CodeInsightSettings.NO) {
             return Collections.emptyList();
         }
@@ -84,6 +92,14 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
 
     @Override
     public @NotNull List<HaxeReferenceTransferableData> extractTransferableData(@NotNull Transferable content) {
+        try {
+            return extractTransferableDataInner(content);
+        } catch (Exception | NoClassDefFoundError e) {
+            return Collections.emptyList();
+        }
+    }
+
+    private @NotNull List<HaxeReferenceTransferableData> extractTransferableDataInner(@NotNull Transferable content) {
         HaxeReferenceTransferableData referenceData = null;
         if (CodeInsightSettings.getInstance().ADD_IMPORTS_ON_PASTE != CodeInsightSettings.NO) {
             try {
@@ -105,6 +121,18 @@ public abstract class HaxeBaseCopyPasteReferenceProcessor <TRef extends PsiEleme
 
     @Override
     public void processTransferableData(@NotNull Project project,
+                                        @NotNull Editor editor,
+                                        @NotNull RangeMarker bounds,
+                                        int caretOffset,
+                                        @NotNull Ref<? super Boolean> indented, @NotNull List<? extends HaxeReferenceTransferableData> values) {
+        try {
+            processTransferableDataInner(project, editor, bounds, caretOffset, indented, values);
+        } catch (Exception | NoClassDefFoundError e) {
+            // Java-specific classes not available (e.g. WebStorm)
+        }
+    }
+
+    private void processTransferableDataInner(@NotNull Project project,
                                         @NotNull Editor editor,
                                         @NotNull RangeMarker bounds,
                                         int caretOffset,
