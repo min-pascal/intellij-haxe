@@ -157,8 +157,37 @@ public class HaxeSdkUtilBase {
   public static Map<String,String> patchEnvironment(@NotNull Map<String,String> env, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     String pathvar = SystemInfo.isWindows ? "Path" : "PATH";
     if (haxeSdkData != null) {
-      final String path = getEnvironmentPathPatch(haxeSdkData) + env.get(pathvar);
+      String basePath = env.get(pathvar);
+      if (basePath == null || basePath.isEmpty()) {
+        basePath = System.getenv(pathvar);
+      }
+      if (basePath == null) {
+        basePath = "";
+      }
+      final String path = getEnvironmentPathPatch(haxeSdkData) + basePath;
       env.put(pathvar, path);
+
+      // On macOS, ensure DYLD_FALLBACK_LIBRARY_PATH includes the neko library directory
+      // so that haxelib (which links against libneko.2.dylib) can find it
+      if (SystemInfo.isMac) {
+        String nekoBin = haxeSdkData.getNekoBinPath();
+        String sdkHome = haxeSdkData.getHomePath();
+        StringBuilder dylibPath = new StringBuilder();
+        if (nekoBin != null && !nekoBin.isEmpty()) {
+          dylibPath.append(new File(nekoBin).getParent());
+        }
+        if (sdkHome != null && !sdkHome.isEmpty()) {
+          if (dylibPath.length() > 0) dylibPath.append(":");
+          dylibPath.append(sdkHome);
+        }
+        if (dylibPath.length() > 0) {
+          String existing = env.get("DYLD_FALLBACK_LIBRARY_PATH");
+          if (existing != null && !existing.isEmpty()) {
+            dylibPath.append(":").append(existing);
+          }
+          env.put("DYLD_FALLBACK_LIBRARY_PATH", dylibPath.toString());
+        }
+      }
     }
     return env;
   }
