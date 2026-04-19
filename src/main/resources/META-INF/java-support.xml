@@ -23,5 +23,12 @@
 
     <!-- Java overriding methods search -->
     <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
+
+    <!-- Project open processors (extend ProjectOpenProcessorBase from Java plugin) -->
+    <projectOpenProcessor id="openOpenFlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenOpenFlProjectProcessor"/>
+    <projectOpenProcessor id="openLimeProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenLimeProjectProcessor"/>
+    <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
+    <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
+    <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
   </extensions>
 </idea-plugin>
