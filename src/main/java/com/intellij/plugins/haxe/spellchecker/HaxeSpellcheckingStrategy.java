@@ -7,12 +7,9 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.psi.*;
-import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.spellchecker.tokenizer.SpellcheckingStrategy;
 import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Set;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOUBLE_QUOTE;
 
@@ -31,11 +28,6 @@ public class HaxeSpellcheckingStrategy extends SpellcheckingStrategy implements 
             }
         }
         return namedElementTokenizer;
-    }
-
-    @Override
-    public @NotNull Tokenizer getTokenizer(@NotNull PsiElement element, @NotNull Set<SpellCheckingInspection.SpellCheckingScope> scope) {
-        return super.getTokenizer(element, scope);
     }
 
     @Override
