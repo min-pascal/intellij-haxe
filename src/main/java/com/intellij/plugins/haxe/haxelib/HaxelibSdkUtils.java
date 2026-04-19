@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -134,7 +135,16 @@ public class HaxelibSdkUtils {
     String version = sdkType.getVersionString(sdkPath);
     String name = sdkType.suggestSdkName(version, sdkPath);
     ProjectJdkImpl sdk = new ProjectJdkImpl(name, sdkType, sdkPath, version != null ? version : "");
-    sdkType.setupSdkPaths(sdk);
+
+    // Set SDK additional data synchronously so haxelib path is available immediately
+    com.intellij.plugins.haxe.config.sdk.HaxeSdkData sdkData =
+      com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil.testHaxeSdk(sdkPath);
+    if (sdkData != null) {
+      SdkModificator modificator = sdk.getSdkModificator();
+      modificator.setSdkAdditionalData(sdkData);
+      com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil.setupSdkPaths(sdk.getHomeDirectory(), modificator);
+      modificator.commitChanges();
+    }
 
     ApplicationManager.getApplication().invokeLaterOnWriteThread(() -> {
       ApplicationManager.getApplication().runWriteAction(() -> {
