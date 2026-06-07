@@ -161,13 +161,41 @@ public class HLAutoDebugConfig implements HLDebugConfig {
 
   @Override
   public String getAdapterPath() {
-    // 1. Check HASHLINK_DEBUGGER_ADAPTER environment variable
-    String envAdapter = System.getenv("HASHLINK_DEBUGGER_ADAPTER");
-    if (envAdapter != null && !envAdapter.isEmpty() && new File(envAdapter).isFile()) {
-      return envAdapter;
+    final List<String> tried = new ArrayList<>();
+
+    // 1. Explicit path configured in Settings > Languages & Frameworks > Haxe
+    //    ("HashLink debug adapter"). This is where the SDK is configured in WebStorm.
+    String projectAdapter = HaxeProjectSettings.getInstance(project).getHashlinkDebuggerAdapterPath();
+    if (projectAdapter != null && !projectAdapter.isEmpty()) {
+      if (new File(projectAdapter).isFile()) {
+        return projectAdapter;
+      }
+      tried.add(projectAdapter + " (from Languages & Frameworks > Haxe)");
     }
 
-    // 2. Look for hashlink-debugger/adapter.js in project root and parent directories
+    // 2. Explicit path configured on the Haxe SDK additional data (IntelliJ IDEA:
+    //    Project Structure > SDKs > "HashLink debug adapter").
+    HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtilBase.getSdkData(module);
+    if (sdkData != null) {
+      String sdkAdapter = sdkData.getHashlinkDebuggerAdapterPath();
+      if (sdkAdapter != null && !sdkAdapter.isEmpty()) {
+        if (new File(sdkAdapter).isFile()) {
+          return sdkAdapter;
+        }
+        tried.add(sdkAdapter + " (from Haxe SDK setting)");
+      }
+    }
+
+    // 3. HASHLINK_DEBUGGER_ADAPTER environment variable
+    String envAdapter = System.getenv("HASHLINK_DEBUGGER_ADAPTER");
+    if (envAdapter != null && !envAdapter.isEmpty()) {
+      if (new File(envAdapter).isFile()) {
+        return envAdapter;
+      }
+      tried.add(envAdapter + " (from HASHLINK_DEBUGGER_ADAPTER)");
+    }
+
+    // 3. Look for hashlink-debugger/adapter.js in project root and parent directories
     String basePath = project.getBasePath();
     if (basePath != null) {
       File dir = new File(basePath);
@@ -177,27 +205,27 @@ public class HLAutoDebugConfig implements HLDebugConfig {
         if (adapter.isFile()) {
           return adapter.getAbsolutePath();
         }
+        tried.add(adapter.getAbsolutePath());
         dir = dir.getParentFile();
       }
     }
 
-    // 3. Check next to the HL executable (some installs bundle the debugger alongside HL)
+    // 4. Check near the HL executable. The hashlink-debugger checkout is commonly a
+    //    sibling of the hashlink install, so walk a couple of levels up from the binary.
     String hlBin = System.getenv("HL_BIN");
     if (hlBin != null && !hlBin.isEmpty()) {
-      File hlDir = new File(hlBin).getParentFile();
-      if (hlDir != null) {
-        // Check sibling directories
-        File parentDir = hlDir.getParentFile();
-        if (parentDir != null) {
-          File adapter = new File(parentDir, "hashlink-debugger/adapter.js");
-          if (adapter.isFile()) {
-            return adapter.getAbsolutePath();
-          }
+      File dir = new File(hlBin).getParentFile();
+      for (int i = 0; i < 3 && dir != null; i++) {
+        File adapter = new File(dir, "hashlink-debugger/adapter.js");
+        if (adapter.isFile()) {
+          return adapter.getAbsolutePath();
         }
+        tried.add(adapter.getAbsolutePath());
+        dir = dir.getParentFile();
       }
     }
 
-    // 4. Try common user-home locations
+    // 5. Try common user-home locations
     String home = System.getProperty("user.home");
     if (home != null) {
       String[] candidates = {
@@ -208,12 +236,18 @@ public class HLAutoDebugConfig implements HLDebugConfig {
         if (new File(candidate).isFile()) {
           return candidate;
         }
+        tried.add(candidate);
       }
     }
 
-    LOG.warn("Could not auto-detect hashlink-debugger adapter.js path. " +
-             "Please use the dedicated 'HashLink Debug' run configuration to specify it manually.");
-    return "adapter.js";
+    String message =
+      "Could not locate the hashlink-debugger 'adapter.js'. Set its path in " +
+      "Settings > Languages & Frameworks > Haxe > \"HashLink debug adapter\" " +
+      "(or, in IntelliJ IDEA, on the Haxe SDK), or set the HASHLINK_DEBUGGER_ADAPTER " +
+      "environment variable.\nLocations checked:\n  " +
+      String.join("\n  ", tried);
+    LOG.error(message);
+    throw new IllegalStateException(message);
   }
 
   @Override

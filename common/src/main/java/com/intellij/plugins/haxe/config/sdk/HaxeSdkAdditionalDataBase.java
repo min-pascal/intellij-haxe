@@ -33,6 +33,10 @@ public interface HaxeSdkAdditionalDataBase {
 
   void setHaxelibPath(String haxelibPath);
 
+  String getHashlinkDebuggerAdapterPath();
+
+  void setHashlinkDebuggerAdapterPath(String hashlinkDebuggerAdapterPath);
+
   boolean getUseCompilerCompletionFlag();
 
   void setUseCompilerCompletionFlag(boolean newState);

@@ -30,6 +30,8 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   private String haxelibPath = "";
 
+  private String hashlinkDebuggerAdapterPath = "";
+
   private boolean useCompilerCompletionFlag = false;
   private boolean removeCompletionDuplicatesFlag = true;
 
@@ -63,6 +65,14 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   public void setHaxelibPath(String haxelibPath) {
     this.haxelibPath = null == haxelibPath ? "" : haxelibPath;
+  }
+
+  public String getHashlinkDebuggerAdapterPath() {
+    return hashlinkDebuggerAdapterPath;
+  }
+
+  public void setHashlinkDebuggerAdapterPath(String hashlinkDebuggerAdapterPath) {
+    this.hashlinkDebuggerAdapterPath = null == hashlinkDebuggerAdapterPath ? "" : hashlinkDebuggerAdapterPath;
   }
 
   public boolean getUseCompilerCompletionFlag() {

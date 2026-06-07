@@ -68,6 +68,16 @@ public class JpsHaxeSdkAdditionalDataImpl extends JpsElementBase<JpsHaxeSdkAddit
   }
 
   @Override
+  public String getHashlinkDebuggerAdapterPath() {
+    return myAdditionalData.getHashlinkDebuggerAdapterPath();
+  }
+
+  @Override
+  public void setHashlinkDebuggerAdapterPath(String hashlinkDebuggerAdapterPath) {
+    myAdditionalData.setHashlinkDebuggerAdapterPath(hashlinkDebuggerAdapterPath);
+  }
+
+  @Override
   public boolean getUseCompilerCompletionFlag() {
     return myAdditionalData.getUseCompilerCompletionFlag();
   }

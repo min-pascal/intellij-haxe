@@ -37,6 +37,8 @@ public class HaxeAdditionalConfigurablePanel {
   private JLabel myNekoLabel;
   private TextFieldWithBrowseButton myHaxelibTextField;
   private JLabel myHaxelibLabel;
+  private TextFieldWithBrowseButton myHlAdapterTextField;
+  private JLabel myHlAdapterLabel;
 
   private JPanel myCompletionPanel;
   private JLabel myCompletionLabel;
@@ -67,6 +69,18 @@ public class HaxeAdditionalConfigurablePanel {
       }
     });
     myHaxelibLabel.setLabelFor(myHaxelibTextField.getTextField());
+    myHlAdapterTextField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // Choose the adapter.js file (single file selection).
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, myPanel, null, null);
+        if (file != null) {
+          setHashlinkDebuggerAdapterPath(FileUtil.toSystemIndependentName(file.getPath()));
+        }
+      }
+    });
+    myHlAdapterLabel.setLabelFor(myHlAdapterTextField.getTextField());
     myCompletionLabel.setLabelFor(myUseCompilerCheckBox);
 
     // Text area for the note.
@@ -96,6 +110,14 @@ public class HaxeAdditionalConfigurablePanel {
 
   public String getHaxelibPath() {
     return FileUtil.toSystemIndependentName(myHaxelibTextField.getText());
+  }
+
+  public void setHashlinkDebuggerAdapterPath(String path) {
+    myHlAdapterTextField.setText(FileUtil.toSystemDependentName(path));
+  }
+
+  public String getHashlinkDebuggerAdapterPath() {
+    return FileUtil.toSystemIndependentName(myHlAdapterTextField.getText());
   }
 
   public void setUseCompilerCompletionFlag(boolean state) {

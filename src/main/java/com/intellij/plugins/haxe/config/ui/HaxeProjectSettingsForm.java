@@ -35,8 +35,41 @@ public class HaxeProjectSettingsForm {
   private MyAddDeleteListPanel myAddDeleteListPanel;
   private JCheckBox autoDetectDefinitionsFromCheckBox;
   private JCheckBox autoDetectCodeReferencesCheckBox;
+  private TextFieldWithBrowseButton mySdkPathField;
+  private JLabel mySdkPathLabel;
+  private TextFieldWithBrowseButton myHxmlPathField;
+  private JLabel myHxmlPathLabel;
+  private TextFieldWithBrowseButton myHlAdapterPathField;
+  private JLabel myHlAdapterPathLabel;
 
   public JComponent getPanel() {
+    if (mySdkPathField != null && mySdkPathField.getClientProperty("browseConfigured") == null) {
+      mySdkPathField.addBrowseFolderListener(
+        "Select Haxe SDK Directory",
+        "Choose the directory containing the Haxe compiler (haxe executable)",
+        null,
+        FileChooserDescriptorFactory.createSingleFolderDescriptor()
+      );
+      mySdkPathField.putClientProperty("browseConfigured", Boolean.TRUE);
+    }
+    if (myHxmlPathField != null && myHxmlPathField.getClientProperty("browseConfigured") == null) {
+      myHxmlPathField.addBrowseFolderListener(
+        "Select Build HXML File",
+        "Choose the .hxml build file for this project",
+        null,
+        FileChooserDescriptorFactory.createSingleFileDescriptor("hxml")
+      );
+      myHxmlPathField.putClientProperty("browseConfigured", Boolean.TRUE);
+    }
+    if (myHlAdapterPathField != null && myHlAdapterPathField.getClientProperty("browseConfigured") == null) {
+      myHlAdapterPathField.addBrowseFolderListener(
+        "Select HashLink Debug Adapter",
+        "Choose the hashlink-debugger adapter.js used for HashLink (.hl) debugging",
+        null,
+        FileChooserDescriptorFactory.createSingleFileDescriptor("js")
+      );
+      myHlAdapterPathField.putClientProperty("browseConfigured", Boolean.TRUE);
+    }
     return myPanel;
   }
 
@@ -53,18 +86,28 @@ public class HaxeProjectSettingsForm {
     final boolean autoDetectCodeNew = autoDetectCodeReferencesCheckBox.isSelected();
     boolean codeCheckboxChanged = autoDetectCodeOld != autoDetectCodeNew;
 
-    return !listEqual || checkboxChanged | codeCheckboxChanged;
+    boolean sdkPathChanged = !settings.getHaxeSdkPath().equals(mySdkPathField.getText().trim());
+    boolean hxmlPathChanged = !settings.getHaxeHxmlPath().equals(myHxmlPathField.getText().trim());
+    boolean hlAdapterPathChanged = !settings.getHashlinkDebuggerAdapterPath().equals(myHlAdapterPathField.getText().trim());
+
+    return !listEqual || checkboxChanged || codeCheckboxChanged || sdkPathChanged || hxmlPathChanged || hlAdapterPathChanged;
   }
 
   public void applyEditorTo(HaxeProjectSettings settings) {
     settings.setUserCompilerDefinitions(myAddDeleteListPanel.getItems());
     settings.setAutoDetectDefinitions(autoDetectDefinitionsFromCheckBox.isSelected());
     settings.setDetectCodeReferencesInConsole(autoDetectCodeReferencesCheckBox.isSelected());
+    settings.setHaxeSdkPath(mySdkPathField.getText().trim());
+    settings.setHaxeHxmlPath(myHxmlPathField.getText().trim());
+    settings.setHashlinkDebuggerAdapterPath(myHlAdapterPathField.getText().trim());
   }
 
   public void resetEditorFrom(HaxeProjectSettings settings) {
     autoDetectCodeReferencesCheckBox.setSelected(settings.getDetectCodeReferencesInConsole());
     autoDetectDefinitionsFromCheckBox.setSelected(settings.getAutoDetectDefinitions());
+    mySdkPathField.setText(settings.getHaxeSdkPath());
+    myHxmlPathField.setText(settings.getHaxeHxmlPath());
+    myHlAdapterPathField.setText(settings.getHashlinkDebuggerAdapterPath());
     myAddDeleteListPanel.removeALlItems();
     for (String item : settings.getUserCompilerDefinitions()) {
       myAddDeleteListPanel.addItem(item);
