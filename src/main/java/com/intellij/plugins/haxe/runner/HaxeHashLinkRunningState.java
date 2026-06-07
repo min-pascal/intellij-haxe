@@ -46,7 +46,7 @@ public class HaxeHashLinkRunningState extends CommandLineState {
                                    "Make sure your build configuration targets HashLink (-hl flag).");
     }
 
-    String hlExecutable = findHlExecutable();
+    String hlExecutable = findHlExecutable(module);
 
     GeneralCommandLine commandLine = new GeneralCommandLine();
     commandLine.setExePath(hlExecutable);
@@ -73,10 +73,30 @@ public class HaxeHashLinkRunningState extends CommandLineState {
   }
 
   /**
-   * Attempts to find the HashLink VM executable.
-   * Checks the system PATH first, then falls back to common project-local locations.
+   * Resolves the HashLink VM executable to use, given an optionally
+   * user-configured path. An absolute path or one containing a path separator
+   * is honoured as-is; a bare command (e.g. {@code "hl"}) — or an empty value —
+   * is resolved via {@link #findHlExecutable(Module)} so it benefits from the
+   * HL_BIN / PATH / project-local lookup instead of relying on the (often
+   * stripped) GUI process PATH.
    */
-  private String findHlExecutable() throws ExecutionException {
+  public static String resolveExecutable(@Nullable String configured, @Nullable Module module) {
+    if (configured == null || configured.isEmpty()) {
+      return findHlExecutable(module);
+    }
+    boolean bareCommand = !configured.contains("/") && !configured.contains(File.separator);
+    if (bareCommand && (configured.equals("hl") || configured.equals("hl.exe"))) {
+      return findHlExecutable(module);
+    }
+    return configured;
+  }
+
+  /**
+   * Attempts to find the HashLink VM executable.
+   * Checks HL_BIN and the shell-sourced PATH first, then falls back to common
+   * project-local locations, and finally the bare {@code "hl"} command.
+   */
+  static String findHlExecutable(@Nullable Module module) {
     // Check HL_BIN environment variable first (set by user's shell config)
     // Use EnvironmentUtil which sources the user's login shell
     String hlBin = getShellEnv("HL_BIN");
@@ -101,12 +121,14 @@ public class HaxeHashLinkRunningState extends CommandLineState {
     }
 
     // Check project-local hashlink directory
-    Project project = module.getProject();
-    String basePath = project.getBasePath();
-    if (basePath != null) {
-      File localHl = new File(basePath, "hashlink/hl");
-      if (localHl.isFile() && localHl.canExecute()) {
-        return localHl.getAbsolutePath();
+    if (module != null) {
+      Project project = module.getProject();
+      String basePath = project.getBasePath();
+      if (basePath != null) {
+        File localHl = new File(basePath, "hashlink/hl");
+        if (localHl.isFile() && localHl.canExecute()) {
+          return localHl.getAbsolutePath();
+        }
       }
     }
 

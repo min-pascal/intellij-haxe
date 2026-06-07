@@ -98,7 +98,7 @@ public class HaxeRunner extends GenericProgramRunner<RunnerSettings> {
             throw new ExecutionException("Unable to to determine workdirectory");
           }
           commandLine.withWorkDirectory(workDir.getCanonicalPath());
-          commandLine.setExePath(configuration.getCustomExecutablePath());
+          commandLine.setExePath(HaxeHashLinkRunningState.resolveExecutable(configuration.getCustomExecutablePath(), module));
           commandLine.addParameter(filePath);
           // Apply user-configured environment variables (and parent-env passing).
           configuration.getEnvData().configureCommandLine(commandLine, true);
