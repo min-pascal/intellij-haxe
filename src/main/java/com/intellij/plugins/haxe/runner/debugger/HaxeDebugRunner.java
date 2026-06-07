@@ -204,7 +204,8 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     }
     else if (hlDebug) {
       final Project project = env.getProject();
-      return runHashLink(project, module, env, configuration.getCustomDebugPort());
+      return runHashLink(project, module, env, configuration.getCustomDebugPort(),
+                         configuration.getEnvData().getEnvs());
     }
     else {
       throw new ExecutionException
@@ -248,6 +249,24 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     }
   }
 
+  /**
+   * Starts an {@link XDebugSession} and returns its {@link RunContentDescriptor}.
+   *
+   * <p>Uses the session-builder API (IntelliJ 2025.3+) instead of the deprecated
+   * {@link XDebugSession#getRunContentDescriptor()}, which logs a "RunContentDescriptor
+   * should not be used in split mode" error under the 2026.1 split-debugger architecture.
+   */
+  private static RunContentDescriptor startDebugSession(@NotNull Project project,
+                                                        @NotNull ExecutionEnvironment env,
+                                                        @NotNull XDebugProcessStarter starter)
+    throws ExecutionException {
+    return XDebuggerManager.getInstance(project)
+      .newSessionBuilder(starter)
+      .environment(env)
+      .startSession()
+      .getRunContentDescriptor();
+  }
+
   private RunContentDescriptor runHxcpp(final Project project,
                                         final Module module,
                                         final HaxeModuleSettings settings,
@@ -256,9 +275,8 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
                                         final int port,
                                         final boolean remoteDebugging)
     throws ExecutionException {
-    final XDebugSession debugSession =
-      XDebuggerManager.getInstance(project).startSession
-        (env,
+    return startDebugSession
+        (project, env,
          new XDebugProcessStarter() {
            @NotNull
            public XDebugProcess start(@NotNull final XDebugSession session)
@@ -316,16 +334,15 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
              }
            }
          });
-
-    return debugSession.getRunContentDescriptor();
   }
 
   private RunContentDescriptor runHashLink(final Project project,
                                            final Module module,
                                            final ExecutionEnvironment env,
-                                           final int customPort)
+                                           final int customPort,
+                                           final java.util.Map<String, String> envVars)
     throws ExecutionException {
-    final HLDebugConfig config = new HLAutoDebugConfig(project, module, customPort);
+    final HLDebugConfig config = new HLAutoDebugConfig(project, module, customPort, envVars);
 
     // Validate that the .hl program file exists
     final String programPath = config.getProgramPath();
@@ -334,9 +351,8 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
                                    "Make sure your build configuration targets HashLink (-hl flag).");
     }
 
-    final XDebugSession debugSession =
-      XDebuggerManager.getInstance(project).startSession(
-        env,
+    return startDebugSession(
+        project, env,
         new XDebugProcessStarter() {
           @NotNull
           @Override
@@ -348,8 +364,6 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
           }
         }
       );
-
-    return debugSession.getRunContentDescriptor();
   }
 
   /**

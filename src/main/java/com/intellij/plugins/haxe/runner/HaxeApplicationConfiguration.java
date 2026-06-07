@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.runner;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configuration.EmptyRunProfileState;
+import com.intellij.execution.configuration.EnvironmentVariablesData;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
@@ -51,6 +52,7 @@ public class HaxeApplicationConfiguration extends HaxeApplicationConfigurationBa
   private boolean customExecutable = false;
   private int customDebugPort = 6972;
   private boolean customRemoteDebugging = false;
+  private EnvironmentVariablesData envData = EnvironmentVariablesData.DEFAULT;
 
   public HaxeApplicationConfiguration(String name, Project project, HaxeRunConfigurationType configurationType) {
     super(name, new HaxeApplicationModuleBasedConfiguration(project), configurationType.getConfigurationFactories()[0]);
@@ -143,14 +145,28 @@ public class HaxeApplicationConfiguration extends HaxeApplicationConfigurationBa
     this.customRemoteDebugging = customRemoteDebugging;
   }
 
+  // Persisted manually (below) via EnvironmentVariablesData's own serialization,
+  // so keep it out of the XmlSerializer pass.
+  @com.intellij.util.xmlb.annotations.Transient
+  @NotNull
+  public EnvironmentVariablesData getEnvData() {
+    return envData;
+  }
+
+  public void setEnvData(@NotNull EnvironmentVariablesData envData) {
+    this.envData = envData;
+  }
+
   public void writeExternal(final Element element) throws WriteExternalException {
     super.writeExternal(element);
     XmlSerializer.serializeInto(this, element);
+    envData.writeExternal(element);
   }
 
   public void readExternal(final Element element) throws InvalidDataException {
     super.readExternal(element);
     readModule(element);
     XmlSerializer.deserializeInto(this, element);
+    envData = EnvironmentVariablesData.readExternal(element);
   }
 }

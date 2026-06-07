@@ -38,4 +38,9 @@ public interface HLDebugConfig {
 
   /** The IntelliJ project. */
   Project getProject();
+
+  /** Extra environment variables to pass to the HL process. Never null. */
+  default java.util.Map<String, String> getEnvironmentVariables() {
+    return java.util.Collections.emptyMap();
+  }
 }

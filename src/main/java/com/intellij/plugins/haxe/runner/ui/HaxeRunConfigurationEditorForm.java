@@ -49,6 +49,9 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
   private TextFieldWithBrowseButton myExecutableField;
   private JTextField myDebugListenPort;
   private JCheckBox myRemoteDebuggingCheckBox;
+  // Added programmatically (not via the GUI Designer form) so it reliably renders.
+  private final com.intellij.execution.configuration.EnvironmentVariablesComponent myEnvVariables =
+    new com.intellij.execution.configuration.EnvironmentVariablesComponent();
 
   private String customPathToFile = "";
   private String customPathToExecutable = "";
@@ -167,6 +170,8 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     customRemoteDebugging = configuration.isCustomRemoteDebugging();
     myRemoteDebuggingCheckBox.setSelected(customRemoteDebugging);
 
+    myEnvVariables.setEnvData(configuration.getEnvData());
+
     updateComponents();
   }
 
@@ -221,6 +226,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     }
     configuration.setCustomDebugPort(port);
     configuration.setCustomRemoteDebugging(customRemoteDebugging);
+    configuration.setEnvData(myEnvVariables.getEnvData());
   }
 
   private Module getSelectedModule() {
@@ -230,7 +236,11 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
   @NotNull
   @Override
   protected JComponent createEditor() {
-    return component;
+    // Stack the designer form on top and the environment-variables row below it.
+    final JPanel wrapper = new JPanel(new java.awt.BorderLayout());
+    wrapper.add(component, java.awt.BorderLayout.CENTER);
+    wrapper.add(myEnvVariables, java.awt.BorderLayout.SOUTH);
+    return wrapper;
   }
 
   @Override

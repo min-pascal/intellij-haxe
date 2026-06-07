@@ -8,8 +8,11 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
+import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.util.EnvironmentUtil;
 
 import java.io.File;
@@ -34,18 +37,31 @@ public class HLAutoDebugConfig implements HLDebugConfig {
   private final String programPath;
   private final String workingDirectory;
   private final int debugPort;
+  private final java.util.Map<String, String> environmentVariables;
+
+  public HLAutoDebugConfig(Project project, Module module, int debugPort) {
+    this(project, module, debugPort, java.util.Collections.emptyMap());
+  }
 
   /**
    * @param project          the IntelliJ project
    * @param module           the Haxe module
    * @param debugPort        debug port (use {@link #DEFAULT_DEBUG_PORT} if 0 or negative)
+   * @param environmentVariables extra environment variables for the HL process
    */
-  public HLAutoDebugConfig(Project project, Module module, int debugPort) {
+  public HLAutoDebugConfig(Project project, Module module, int debugPort,
+                           java.util.Map<String, String> environmentVariables) {
     this.project = project;
     this.module = module;
     this.programPath = resolveHlProgramPath(project, module);
     this.workingDirectory = project.getBasePath();
     this.debugPort = debugPort > 0 ? debugPort : DEFAULT_DEBUG_PORT;
+    this.environmentVariables = environmentVariables;
+  }
+
+  @Override
+  public java.util.Map<String, String> getEnvironmentVariables() {
+    return environmentVariables;
   }
 
   /**

@@ -188,6 +188,13 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
           if (ldPath != null && !ldPath.isEmpty()) {
             env.put("LD_LIBRARY_PATH", ldPath);
           }
+          // User-configured environment variables from the run configuration. The
+          // adapter applies the launch "env" map to the spawned HL process, so these
+          // must go here (setting them on the adapter's own process does not reach HL).
+          Map<String, String> userEnv = config.getEnvironmentVariables();
+          if (userEnv != null && !userEnv.isEmpty()) {
+            env.putAll(userEnv);
+          }
           if (!env.isEmpty()) {
             launchReq.setArgument("env", env);
           }

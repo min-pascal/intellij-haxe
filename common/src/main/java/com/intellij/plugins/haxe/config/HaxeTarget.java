@@ -110,8 +110,14 @@ public enum HaxeTarget {
    */
   @Nullable
   public static HaxeTarget matchOutputTarget(String compilerTargetArgument) {
+    if (compilerTargetArgument == null) {
+      return null;
+    }
     for (HaxeTarget t : HaxeTarget.values()) {
-      if (t.getCompilerFlag().equals(compilerTargetArgument)) {
+      // Accept both the single-dash form (e.g. '-hl') and Haxe 4's
+      // double-dash form (e.g. '--hl').
+      String flag = t.getCompilerFlag();
+      if (flag.equals(compilerTargetArgument) || ("-" + flag).equals(compilerTargetArgument)) {
         return t;
       }
     }

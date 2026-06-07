@@ -100,6 +100,8 @@ public class HaxeRunner extends GenericProgramRunner<RunnerSettings> {
           commandLine.withWorkDirectory(workDir.getCanonicalPath());
           commandLine.setExePath(configuration.getCustomExecutablePath());
           commandLine.addParameter(filePath);
+          // Apply user-configured environment variables (and parent-env passing).
+          configuration.getEnvData().configureCommandLine(commandLine, true);
 
           final TextConsoleBuilder consoleBuilder = TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());
           setConsoleBuilder(consoleBuilder);
@@ -125,7 +127,7 @@ public class HaxeRunner extends GenericProgramRunner<RunnerSettings> {
 
     if (settings.getCompilationTarget() == HaxeTarget.HL) {
       final String hlOutput = getOutputFilePath(module, settings);
-      return executeState(new HaxeHashLinkRunningState(environment, module, hlOutput), environment, this);
+      return executeState(new HaxeHashLinkRunningState(environment, module, hlOutput, configuration.getEnvData()), environment, this);
     }
 
     if (settings.getCompilationTarget() != HaxeTarget.NEKO) {

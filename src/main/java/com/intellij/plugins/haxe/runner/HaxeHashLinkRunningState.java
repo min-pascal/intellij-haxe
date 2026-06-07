@@ -23,11 +23,19 @@ public class HaxeHashLinkRunningState extends CommandLineState {
   private final Module module;
   @Nullable
   private final String hlOutputPath;
+  @NotNull
+  private final com.intellij.execution.configuration.EnvironmentVariablesData envData;
 
   public HaxeHashLinkRunningState(ExecutionEnvironment env, Module module, @Nullable String hlOutputPath) {
+    this(env, module, hlOutputPath, com.intellij.execution.configuration.EnvironmentVariablesData.DEFAULT);
+  }
+
+  public HaxeHashLinkRunningState(ExecutionEnvironment env, Module module, @Nullable String hlOutputPath,
+                                  @NotNull com.intellij.execution.configuration.EnvironmentVariablesData envData) {
     super(env);
     this.module = module;
     this.hlOutputPath = hlOutputPath;
+    this.envData = envData;
   }
 
   @NotNull
@@ -53,6 +61,9 @@ public class HaxeHashLinkRunningState extends CommandLineState {
 
     // Set up library paths so HL can find its shared libraries (.hdll/.dylib)
     setupHlEnvironment(commandLine, hlExecutable);
+
+    // Apply user-configured environment variables on top (and parent-env passing).
+    envData.configureCommandLine(commandLine, true);
 
     final TextConsoleBuilder consoleBuilder =
       TextConsoleBuilderFactory.getInstance().createBuilder(module.getProject());

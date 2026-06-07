@@ -109,7 +109,16 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     } else if (isUseOpenFLToBuild()) {    // OpenFL
       defaultTarget = getOpenFLTarget().getOutputTarget();
       targetArgs = getOpenFLFlags();
-    } else {                              // HXML or haxe compiler
+    } else if (isUseHxmlToBuild()) {      // HXML file
+      // The target (e.g. -hl / --hl) lives inside the linked hxml file, not in
+      // the additional-arguments field, so parse the file contents directly.
+      HaxeTarget fromHxml = getTargetFromCompilerArguments(readHxmlContents());
+      if (null != fromHxml) {
+        return fromHxml;
+      }
+      defaultTarget = getHaxeTarget();
+      targetArgs = getArguments();
+    } else {                              // haxe compiler arguments
       defaultTarget = getHaxeTarget();
       targetArgs = getArguments();
     }
@@ -121,20 +130,52 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
     return t;
   }
 
+  /**
+   * Reads the contents of the linked hxml file (if any) so its compiler
+   * arguments can be scanned for the output target. Returns {@code null} when
+   * the path is unset or the file cannot be read.
+   */
+  @Nullable
+  private String readHxmlContents() {
+    String path = getHxmlPath();
+    if (path == null || path.isEmpty()) {
+      return null;
+    }
+    java.io.File file = new java.io.File(path);
+    if (!file.isFile()) {
+      return null;
+    }
+    try {
+      return new String(java.nio.file.Files.readAllBytes(file.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+    } catch (java.io.IOException e) {
+      return null;
+    }
+  }
+
   @Nullable
   private static HaxeTarget getTargetFromCompilerArguments(String arguments) {
-    HaxeTarget target = null;
-    if (null != arguments && !arguments.isEmpty()) {
-      String[] args = arguments.split(" ");
-      for (String a : args) {
+    if (null == arguments || arguments.isEmpty()) {
+      return null;
+    }
+    // Handle both single-line argument strings and multi-line hxml content,
+    // ignoring '#' comments (an hxml convention).
+    for (String line : arguments.split("\\r?\\n")) {
+      int hash = line.indexOf('#');
+      if (hash >= 0) {
+        line = line.substring(0, hash);
+      }
+      line = line.trim();
+      if (line.isEmpty()) {
+        continue;
+      }
+      for (String a : line.split("\\s+")) {
         HaxeTarget matched = HaxeTarget.matchOutputTarget(a);
         if (null != matched) {
-          target = matched;
-          break;
+          return matched;
         }
       }
     }
-    return target;
+    return null;
   }
 
 
