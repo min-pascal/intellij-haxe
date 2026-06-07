@@ -720,6 +720,10 @@ public class HLDebugProcess extends XDebugProcess implements HLDebugProcessInter
       } else {
         LOG.warn("[HL Debug] setBreakpoints FAILED: " + resp.getMessage());
       }
+    } catch (java.util.concurrent.TimeoutException e) {
+      // The debuggee/adapter may have already exited (e.g. the program finished, or
+      // during session teardown). A breakpoint sync that can't round-trip is non-fatal.
+      LOG.warn("[HL Debug] Timed out sending breakpoints (adapter may have exited): " + filePath);
     } catch (Exception e) {
       LOG.error("Failed to send breakpoints for file: " + filePath, e);
     }
